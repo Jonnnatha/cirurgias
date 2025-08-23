@@ -22,6 +22,11 @@ class SurgeryRequestController extends Controller
             ->latest('date')->latest('start_time')
             ->paginate(15);
 
+        $data->getCollection()->transform(function ($r) {
+            $r->can_cancel = Auth::user()->can('delete', $r) || Auth::user()->can('update', $r);
+            return $r;
+        });
+
         return inertia('Medico/MinhasSolicitacoes', [
             'requests' => $data
         ]);
@@ -36,8 +41,14 @@ class SurgeryRequestController extends Controller
             ->when($req->status, fn($qq) => $qq->where('status', $req->status))
             ->orderBy('date')->orderBy('start_time');
 
+        $requests = $q->paginate(20);
+        $requests->getCollection()->transform(function ($r) {
+            $r->can_cancel = Auth::user()->can('delete', $r) || Auth::user()->can('update', $r);
+            return $r;
+        });
+
         return inertia('Enfermeiro/Solicitacoes', [
-            'requests' => $q->paginate(20),
+            'requests' => $requests,
             'filters'  => ['status' => $req->status]
         ]);
     }
@@ -157,5 +168,24 @@ class SurgeryRequestController extends Controller
         ]);
 
         return back()->with('ok', 'Solicitação reprovada.');
+    }
+
+    // Cancelar ou remover pedido (médico/admin)
+    public function destroy(SurgeryRequest $requestModel)
+    {
+        $user = Auth::user();
+
+        if ($user->can('delete', $requestModel)) {
+            $requestModel->delete();
+            return back()->with('ok', 'Solicitação removida.');
+        }
+
+        $this->authorize('update', $requestModel);
+
+        $requestModel->update([
+            'status' => 'cancelled',
+        ]);
+
+        return back()->with('ok', 'Solicitação cancelada.');
     }
 }
