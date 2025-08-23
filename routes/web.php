@@ -41,6 +41,10 @@ Route::middleware('auth')->group(function () {
         // lista somente do médico logado
         Route::get('/my/surgery-requests', [SurgeryRequestController::class, 'indexMy'])
             ->name('surgery-requests.indexMy');
+
+        // cancelar/remover pedido
+        Route::delete('/surgery-requests/{request}', [SurgeryRequestController::class, 'destroy'])
+            ->name('surgery-requests.destroy');
     });
 
     /**
