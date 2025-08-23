@@ -53,6 +53,24 @@ class SurgeryRequestController extends Controller
         ]);
     }
 
+    // Formulário de criação (médico/admin)
+    public function create()
+    {
+        $this->authorize('create', SurgeryRequest::class);
+
+        return inertia('Medico/NovaSolicitacao');
+    }
+
+    // Formulário de edição
+    public function edit(SurgeryRequest $requestModel)
+    {
+        $this->authorize('update', $requestModel);
+
+        return inertia('Medico/NovaSolicitacao', [
+            'request' => $requestModel
+        ]);
+    }
+
     // Criar pedido (médico/admin)
     public function store(StoreSurgeryRequestRequest $request)
     {
@@ -93,6 +111,48 @@ class SurgeryRequestController extends Controller
             ]);
 
             return back()->with('ok', 'Solicitação criada!');
+        });
+    }
+
+    // Atualizar pedido
+    public function update(StoreSurgeryRequestRequest $request, SurgeryRequest $requestModel)
+    {
+        $this->authorize('update', $requestModel);
+
+        $date  = $request->date;
+        $start = $request->start_time;
+        $end   = $request->end_time;
+
+        return DB::transaction(function () use ($date, $start, $end, $request, $requestModel) {
+
+            // LOCK por dia para evitar corrida
+            DB::select('SELECT id FROM surgery_requests WHERE date = ? FOR UPDATE', [$date]);
+
+            $overlap = SurgeryRequest::where('date', $date)
+                ->where('id', '!=', $requestModel->id)
+                ->whereIn('status', ['requested','approved'])
+                ->where('start_time', '<', $end)
+                ->where('end_time', '>', $start)
+                ->exists();
+
+            if ($overlap) {
+                throw ValidationException::withMessages([
+                    'start_time' => 'Conflito de horário: já existe um agendamento que sobrepõe este intervalo.'
+                ]);
+            }
+
+            $requestModel->update([
+                'date'         => $date,
+                'start_time'   => $start,
+                'end_time'     => $end,
+                'patient_name' => $request->patient_name,
+                'procedure'    => $request->procedure,
+                'meta'         => array_merge($requestModel->meta ?? [], [
+                    'confirm_docs' => (bool) $request->boolean('confirm_docs'),
+                ]),
+            ]);
+
+            return back()->with('ok', 'Solicitação atualizada!');
         });
     }
 
