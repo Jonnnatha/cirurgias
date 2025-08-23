@@ -25,6 +25,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    // Upload de documento para cirurgia
+    Route::post('/surgery-requests/{request}/documents', [SurgeryRequestController::class, 'uploadDocument'])
+        ->name('surgery-requests.documents.store');
+
 
     /**
      * ===========================================

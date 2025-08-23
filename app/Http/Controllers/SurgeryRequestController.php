@@ -158,4 +158,23 @@ class SurgeryRequestController extends Controller
 
         return back()->with('ok', 'Solicitação reprovada.');
     }
+
+    // Upload de documento
+    public function uploadDocument(SurgeryRequest $requestModel, Request $req)
+    {
+        $this->authorize('update', $requestModel);
+
+        $req->validate([
+            'file' => ['required','file'],
+        ]);
+
+        $path = $req->file('file')->store('documents');
+
+        $requestModel->documents()->create([
+            'path' => $path,
+            'uploaded_by' => Auth::id(),
+        ]);
+
+        return back()->with('ok', 'Documento enviado.');
+    }
 }
