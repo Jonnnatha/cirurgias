@@ -34,6 +34,10 @@ Route::middleware('auth')->group(function () {
      * ===========================================
      */
     Route::middleware(['role:medico|admin'])->group(function () {
+        // formulário de criação
+        Route::get('/surgery-requests/create', [SurgeryRequestController::class, 'create'])
+            ->name('surgery-requests.create');
+
         // cria pedido (status: requested/laranja)
         Route::post('/surgery-requests', [SurgeryRequestController::class, 'store'])
             ->name('surgery-requests.store');
@@ -41,6 +45,14 @@ Route::middleware('auth')->group(function () {
         // lista somente do médico logado
         Route::get('/my/surgery-requests', [SurgeryRequestController::class, 'indexMy'])
             ->name('surgery-requests.indexMy');
+    });
+
+    // edição/atualização do pedido
+    Route::middleware(['role:medico|enfermeiro|admin'])->group(function () {
+        Route::get('/surgery-requests/{request}/edit', [SurgeryRequestController::class, 'edit'])
+            ->name('surgery-requests.edit');
+        Route::match(['put', 'patch'], '/surgery-requests/{request}', [SurgeryRequestController::class, 'update'])
+            ->name('surgery-requests.update');
     });
 
     /**
