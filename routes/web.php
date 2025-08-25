@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SurgeryRequestController;
 use App\Http\Controllers\ChecklistController;
+use App\Http\Controllers\DocumentController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -57,6 +58,11 @@ Route::middleware('auth')->group(function () {
             ->name('surgery-requests.edit');
         Route::match(['put', 'patch'], '/surgery-requests/{request}', [SurgeryRequestController::class, 'update'])
             ->name('surgery-requests.update');
+
+        Route::post('/surgery-requests/{request}/documents', [DocumentController::class, 'store'])
+            ->name('surgery-requests.documents.store');
+        Route::delete('/surgery-requests/{request}/documents/{document}', [DocumentController::class, 'destroy'])
+            ->name('surgery-requests.documents.destroy');
     });
 
     /**
