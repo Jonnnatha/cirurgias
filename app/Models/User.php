@@ -19,18 +19,22 @@ class User extends Authenticatable
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'hierarquia',
+        'nome',
+        'senha',
     ];
 
     protected $hidden = [
-        'password',
+        'senha',
         'remember_token',
     ];
 
     protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'senha' => 'hashed',
     ];
+
+    public function getAuthPassword()
+    {
+        return $this->senha;
+    }
 }
