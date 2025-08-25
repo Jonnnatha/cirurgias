@@ -28,7 +28,7 @@ class LoginRequest extends FormRequest
     {
         return [
             'nome' => ['required', 'string'],
-            'password' => ['required', 'string'],
+            'senha' => ['required', 'string'],
         ];
     }
 
@@ -41,7 +41,7 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('nome', 'password'), $this->boolean('remember'))) {
+        if (! Auth::attempt(['nome' => $this->nome, 'password' => $this->senha], $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

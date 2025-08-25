@@ -18,7 +18,7 @@ const props = defineProps({
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
-                        Bem-vindo, enfermeiro {{ props.user.name }}! Acompanhe os pedidos de cirurgia.
+                        Bem-vindo, enfermeiro {{ props.user.nome }}! Acompanhe os pedidos de cirurgia.
                     </div>
                 </div>
             </div>

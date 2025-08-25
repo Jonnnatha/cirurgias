@@ -24,7 +24,7 @@ class AuthenticationTest extends TestCase
 
         $response = $this->post('/login', [
             'nome' => $user->nome,
-            'password' => 'password',
+            'senha' => 'password',
         ]);
 
         $this->assertAuthenticated();
@@ -37,7 +37,7 @@ class AuthenticationTest extends TestCase
 
         $this->post('/login', [
             'nome' => $user->nome,
-            'password' => 'wrong-password',
+            'senha' => 'wrong-password',
         ]);
 
         $this->assertGuest();
