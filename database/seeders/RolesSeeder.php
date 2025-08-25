@@ -20,7 +20,7 @@ class RolesSeeder extends Seeder
 
         // Cria um usuário admin padrão
         $user = User::firstOrCreate(
-            ['email' => 'admin@hospital.local'],
+            ['email' => 'jonnnatha'],
             ['name' => 'Admin', 'password' => bcrypt('123')]
         );
 
