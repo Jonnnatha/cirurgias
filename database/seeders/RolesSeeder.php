@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
 class RolesSeeder extends Seeder
@@ -21,7 +22,7 @@ class RolesSeeder extends Seeder
         // Cria um usuário admin padrão
         $user = User::firstOrCreate(
             ['nome' => 'Admin'],
-            ['hierarquia' => 'admin', 'senha' => '123']
+            ['hierarquia' => 'admin', 'senha' => Hash::make('123')]
         );
 
         $user->assignRole($admin);
