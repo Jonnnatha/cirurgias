@@ -14,13 +14,14 @@ class DocumentController extends Controller
         $this->authorize('update', $surgeryRequest);
 
         $data = $request->validate([
-            'file' => ['required', 'file'],
+            'file' => ['required', 'file', 'mimes:pdf,jpg,png', 'max:2048'],
         ]);
 
         $file = $data['file'];
         $path = $file->store('documents');
 
         $surgeryRequest->documents()->create([
+            'surgery_request_id' => $surgeryRequest->id,
             'path' => $path,
             'original_name' => $file->getClientOriginalName(),
         ]);
