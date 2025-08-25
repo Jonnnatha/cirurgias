@@ -17,8 +17,34 @@ Route::get('/', function () {
     ]);
 });
 
+Route::middleware(['auth', 'role:admin'])->get('/admin/dashboard', function () {
+    return Inertia::render('Admin/Dashboard');
+})->name('admin.dashboard');
+
+Route::middleware(['auth', 'role:medico'])->get('/medico/dashboard', function () {
+    return Inertia::render('Medico/Dashboard');
+})->name('medico.dashboard');
+
+Route::middleware(['auth', 'role:enfermeiro'])->get('/enfermeiro/dashboard', function () {
+    return Inertia::render('Enfermeiro/Dashboard');
+})->name('enfermeiro.dashboard');
+
 Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
+    $user = auth()->user();
+
+    if ($user->hasRole('admin')) {
+        return to_route('admin.dashboard');
+    }
+
+    if ($user->hasRole('medico')) {
+        return to_route('medico.dashboard');
+    }
+
+    if ($user->hasRole('enfermeiro')) {
+        return to_route('enfermeiro.dashboard');
+    }
+
+    abort(403);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
