@@ -17,6 +17,7 @@ class RouteServiceProvider extends ServiceProvider
      *
      * @var string
      */
+    // Redirect after login to a route that forwards to the appropriate dashboard
     public const HOME = '/dashboard';
 
     /**
