@@ -6,13 +6,13 @@ import TextInput from '@/Components/TextInput.vue';
 import { useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
-const passwordInput = ref(null);
-const currentPasswordInput = ref(null);
+const senhaInput = ref(null);
+const senhaAtualInput = ref(null);
 
 const form = useForm({
-    current_password: '',
-    password: '',
-    password_confirmation: '',
+    senha_atual: '',
+    senha: '',
+    senha_confirmation: '',
 });
 
 const updatePassword = () => {
@@ -20,13 +20,13 @@ const updatePassword = () => {
         preserveScroll: true,
         onSuccess: () => form.reset(),
         onError: () => {
-            if (form.errors.password) {
-                form.reset('password', 'password_confirmation');
-                passwordInput.value.focus();
+            if (form.errors.senha) {
+                form.reset('senha', 'senha_confirmation');
+                senhaInput.value.focus();
             }
-            if (form.errors.current_password) {
-                form.reset('current_password');
-                currentPasswordInput.value.focus();
+            if (form.errors.senha_atual) {
+                form.reset('senha_atual');
+                senhaAtualInput.value.focus();
             }
         },
     });
@@ -36,60 +36,60 @@ const updatePassword = () => {
 <template>
     <section>
         <header>
-            <h2 class="text-lg font-medium text-gray-900">Update Password</h2>
+            <h2 class="text-lg font-medium text-gray-900">Atualizar Senha</h2>
 
             <p class="mt-1 text-sm text-gray-600">
-                Ensure your account is using a long, random password to stay secure.
+                Garanta que sua conta use uma senha longa e aleatória para permanecer segura.
             </p>
         </header>
 
         <form @submit.prevent="updatePassword" class="mt-6 space-y-6">
             <div>
-                <InputLabel for="current_password" value="Current Password" />
+                <InputLabel for="senha_atual" value="Senha Atual" />
 
                 <TextInput
-                    id="current_password"
-                    ref="currentPasswordInput"
-                    v-model="form.current_password"
+                    id="senha_atual"
+                    ref="senhaAtualInput"
+                    v-model="form.senha_atual"
                     type="password"
                     class="mt-1 block w-full"
                     autocomplete="current-password"
                 />
 
-                <InputError :message="form.errors.current_password" class="mt-2" />
+                <InputError :message="form.errors.senha_atual" class="mt-2" />
             </div>
 
             <div>
-                <InputLabel for="password" value="New Password" />
+                <InputLabel for="senha" value="Nova Senha" />
 
                 <TextInput
-                    id="password"
-                    ref="passwordInput"
-                    v-model="form.password"
+                    id="senha"
+                    ref="senhaInput"
+                    v-model="form.senha"
                     type="password"
                     class="mt-1 block w-full"
                     autocomplete="new-password"
                 />
 
-                <InputError :message="form.errors.password" class="mt-2" />
+                <InputError :message="form.errors.senha" class="mt-2" />
             </div>
 
             <div>
-                <InputLabel for="password_confirmation" value="Confirm Password" />
+                <InputLabel for="senha_confirmation" value="Confirmar Senha" />
 
                 <TextInput
-                    id="password_confirmation"
-                    v-model="form.password_confirmation"
+                    id="senha_confirmation"
+                    v-model="form.senha_confirmation"
                     type="password"
                     class="mt-1 block w-full"
                     autocomplete="new-password"
                 />
 
-                <InputError :message="form.errors.password_confirmation" class="mt-2" />
+                <InputError :message="form.errors.senha_confirmation" class="mt-2" />
             </div>
 
             <div class="flex items-center gap-4">
-                <PrimaryButton :disabled="form.processing">Save</PrimaryButton>
+                <PrimaryButton :disabled="form.processing">Salvar</PrimaryButton>
 
                 <Transition
                     enter-active-class="transition ease-in-out"
