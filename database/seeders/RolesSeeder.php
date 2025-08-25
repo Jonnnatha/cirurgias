@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
-use App\Models\User;
 
 class RolesSeeder extends Seeder
 {
@@ -14,14 +14,14 @@ class RolesSeeder extends Seeder
     public function run(): void
     {
         // Cria os papéis
-        $admin     = Role::firstOrCreate(['name' => 'admin']);
+        $admin = Role::firstOrCreate(['name' => 'admin']);
         $enfermeiro = Role::firstOrCreate(['name' => 'enfermeiro']);
-        $medico     = Role::firstOrCreate(['name' => 'medico']);
+        $medico = Role::firstOrCreate(['name' => 'medico']);
 
         // Cria um usuário admin padrão
         $user = User::firstOrCreate(
-            ['email' => 'jonnnatha'],
-            ['name' => 'Admin', 'password' => bcrypt('123')]
+            ['hierarquia' => 'admin', 'nome' => 'Admin'],
+            ['senha' => bcrypt('123')]
         );
 
         $user->assignRole($admin);
