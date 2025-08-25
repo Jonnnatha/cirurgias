@@ -4,9 +4,9 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SurgeryRequestController;
 use App\Http\Controllers\ChecklistController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 
 Route::redirect('/', '/login');
 
@@ -24,17 +24,17 @@ Route::get('/dashboard', function (Request $request) {
     abort(403);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::middleware(['auth', 'verified', 'role:admin'])->get('/admin/dashboard', function () {
-    return Inertia::render('Admin/Dashboard');
-})->name('admin.dashboard');
+Route::middleware(['auth','verified','role:admin'])
+    ->get('/admin/dashboard',[DashboardController::class,'admin'])
+    ->name('admin.dashboard');
 
-Route::middleware(['auth', 'verified', 'role:medico'])->get('/medico/dashboard', function () {
-    return Inertia::render('Medico/Dashboard');
-})->name('medico.dashboard');
+Route::middleware(['auth','verified','role:medico'])
+    ->get('/medico/dashboard',[DashboardController::class,'medico'])
+    ->name('medico.dashboard');
 
-Route::middleware(['auth', 'verified', 'role:enfermeiro'])->get('/enfermeiro/dashboard', function () {
-    return Inertia::render('Enfermeiro/Dashboard');
-})->name('enfermeiro.dashboard');
+Route::middleware(['auth','verified','role:enfermeiro'])
+    ->get('/enfermeiro/dashboard',[DashboardController::class,'enfermeiro'])
+    ->name('enfermeiro.dashboard');
 
 Route::middleware('auth')->group(function () {
     // Perfil do usuário (Breeze)
