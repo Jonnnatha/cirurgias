@@ -36,6 +36,10 @@
             "Tests\\": "tests/"
         }
     },
+    "replace": {
+        "symfony/mailer": "^6.2",
+        "egulias/email-validator": "^4.0"
+    },
     "scripts": {
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
