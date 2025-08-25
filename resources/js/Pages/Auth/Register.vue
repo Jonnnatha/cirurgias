@@ -8,7 +8,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 
 const form = useForm({
     nome: '',
-    email: '',
+    hierarquia: '',
     senha: '',
     senha_confirmation: '',
 });
@@ -42,18 +42,17 @@ const submit = () => {
             </div>
 
             <div class="mt-4">
-                <InputLabel for="email" value="Email" />
+                <InputLabel for="hierarquia" value="Hierarquia" />
 
                 <TextInput
-                    id="email"
-                    type="email"
+                    id="hierarquia"
+                    type="text"
                     class="mt-1 block w-full"
-                    v-model="form.email"
+                    v-model="form.hierarquia"
                     required
-                    autocomplete="username"
                 />
 
-                <InputError class="mt-2" :message="form.errors.email" />
+                <InputError class="mt-2" :message="form.errors.hierarquia" />
             </div>
 
             <div class="mt-4">
