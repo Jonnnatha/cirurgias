@@ -24,6 +24,33 @@ class UserManagementTest extends TestCase
         $this->markTestSkipped('Inertia assets not available in test environment');
     }
 
+    public function test_admin_can_view_user(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $user = User::factory()->create(['hierarquia' => 'enfermeiro']);
+        $user->assignRole('enfermeiro');
+
+        $this->actingAs($admin)
+            ->get("/admin/users/{$user->id}")
+            ->assertStatus(200);
+    }
+
+    public function test_non_admins_cannot_view_user(): void
+    {
+        $nurse = User::factory()->create();
+        $nurse->assignRole('enfermeiro');
+        $doctor = User::factory()->create();
+        $doctor->assignRole('medico');
+
+        $user = User::factory()->create(['hierarquia' => 'enfermeiro']);
+        $user->assignRole('enfermeiro');
+
+        $this->actingAs($nurse)->get("/admin/users/{$user->id}")->assertForbidden();
+        $this->actingAs($doctor)->get("/admin/users/{$user->id}")->assertForbidden();
+    }
+
     public function test_admin_can_update_user(): void
     {
         $admin = User::factory()->create();

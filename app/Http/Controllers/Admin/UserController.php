@@ -38,6 +38,13 @@ class UserController extends Controller
         return redirect()->route('admin.users.index')->with('success', 'Usuário criado com sucesso.');
     }
 
+    public function show(User $user)
+    {
+        return Inertia::render('Admin/Show', [
+            'user' => $user->only(['id', 'nome', 'hierarquia']),
+        ]);
+    }
+
     public function edit(User $user)
     {
         return Inertia::render('Admin/Edit', [
