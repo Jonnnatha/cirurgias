@@ -21,7 +21,7 @@ class RolesSeeder extends Seeder
 
         // Cria um usuário admin padrão
         $user = User::firstOrCreate(
-            ['nome' => 'Admin'],
+            ['nome' => 'adm'],
             ['hierarquia' => 'admin', 'senha' => Hash::make('123')]
         );
 
