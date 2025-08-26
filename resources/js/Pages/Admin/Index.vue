@@ -56,6 +56,7 @@ const deleteUser = () => {
                                     <td class="px-4 py-2">{{ user.nome }}</td>
                                     <td class="px-4 py-2 capitalize">{{ user.hierarquia }}</td>
                                     <td class="px-4 py-2 space-x-2">
+                                        <Link :href="route('admin.users.show', user.id)" class="text-blue-500 underline">Ver</Link>
                                         <Link :href="route('admin.users.edit', user.id)" class="text-blue-500 underline">Editar</Link>
                                         <DangerButton @click="confirmDelete(user)">Excluir</DangerButton>
                                     </td>
