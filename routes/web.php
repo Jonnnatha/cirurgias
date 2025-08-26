@@ -8,6 +8,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 Route::redirect('/', '/login');
 
@@ -48,6 +49,8 @@ Route::middleware(['auth','verified','role:enfermeiro'])
     ->name('enfermeiro.dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/calendar', fn () => Inertia::render('Calendar'))
+        ->name('calendar');
     // Perfil do usuário (Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

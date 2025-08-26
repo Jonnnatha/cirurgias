@@ -37,6 +37,9 @@ const isAdmin = computed(() => {
                                 <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
                                     Dashboard
                                 </NavLink>
+                                <NavLink :href="route('calendar')" :active="route().current('calendar')">
+                                    Calendário
+                                </NavLink>
                                 <Dropdown v-if="isAdmin" align="left" width="48">
                                     <template #trigger>
                                         <span class="inline-flex rounded-md">
@@ -154,6 +157,9 @@ const isAdmin = computed(() => {
                     <div class="pt-2 pb-3 space-y-1">
                         <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')">
                             Dashboard
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('calendar')" :active="route().current('calendar')">
+                            Calendário
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
                             v-if="isAdmin"
