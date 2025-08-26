@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 
 const props = defineProps({
     user: Object,
@@ -18,7 +18,10 @@ const props = defineProps({
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
-                        Bem-vindo, administrador {{ props.user.nome }}!
+                        <p>Bem-vindo, administrador {{ props.user.nome }}!</p>
+                        <Link :href="route('admin.users.create')" class="text-blue-500 underline mt-4 inline-block">
+                            Criar novo usuário
+                        </Link>
                     </div>
                 </div>
             </div>
