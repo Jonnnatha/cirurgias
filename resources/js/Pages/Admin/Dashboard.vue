@@ -19,8 +19,8 @@ const props = defineProps({
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
                         <p>Bem-vindo, administrador {{ props.user.nome }}!</p>
-                        <Link :href="route('admin.users.create')" class="text-blue-500 underline mt-4 inline-block">
-                            Criar novo usuário
+                        <Link :href="route('admin.users.index')" class="text-blue-500 underline mt-4 inline-block">
+                            Gerenciar usuários
                         </Link>
                     </div>
                 </div>

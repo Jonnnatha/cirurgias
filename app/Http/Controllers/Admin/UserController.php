@@ -9,6 +9,16 @@ use Inertia\Inertia;
 
 class UserController extends Controller
 {
+    public function index()
+    {
+        $users = User::whereIn('hierarquia', ['enfermeiro', 'medico'])
+            ->get(['id', 'nome', 'hierarquia']);
+
+        return Inertia::render('Admin/Index', [
+            'users' => $users,
+        ]);
+    }
+
     public function create()
     {
         return Inertia::render('Admin/CreateUser');
@@ -25,6 +35,38 @@ class UserController extends Controller
         $user = User::create($data);
         $user->assignRole($request->hierarquia);
 
-        return redirect()->route('admin.dashboard')->with('success', 'Usuário criado com sucesso.');
+        return redirect()->route('admin.users.index')->with('success', 'Usuário criado com sucesso.');
+    }
+
+    public function edit(User $user)
+    {
+        return Inertia::render('Admin/Edit', [
+            'user' => $user->only(['id', 'nome', 'hierarquia']),
+        ]);
+    }
+
+    public function update(Request $request, User $user)
+    {
+        $data = $request->validate([
+            'nome' => ['required', 'string', 'max:255'],
+            'hierarquia' => ['required', 'in:enfermeiro,medico'],
+            'senha' => ['nullable', 'confirmed'],
+        ]);
+
+        if (empty($data['senha'])) {
+            unset($data['senha']);
+        }
+
+        $user->update($data);
+        $user->syncRoles([$request->hierarquia]);
+
+        return redirect()->route('admin.users.index')->with('success', 'Usuário atualizado com sucesso.');
+    }
+
+    public function destroy(User $user)
+    {
+        $user->delete();
+
+        return redirect()->route('admin.users.index')->with('success', 'Usuário excluído com sucesso.');
     }
 }
