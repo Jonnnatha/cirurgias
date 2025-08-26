@@ -5,6 +5,7 @@ use App\Http\Controllers\SurgeryRequestController;
 use App\Http\Controllers\ChecklistController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 
@@ -27,6 +28,11 @@ Route::get('/dashboard', function (Request $request) {
 Route::middleware(['auth','verified','role:admin'])
     ->get('/admin/dashboard',[DashboardController::class,'admin'])
     ->name('admin.dashboard');
+
+Route::middleware(['auth','verified','role:admin'])->group(function () {
+    Route::get('/admin/users/create', [UserController::class, 'create'])->name('admin.users.create');
+    Route::post('/admin/users', [UserController::class, 'store'])->name('admin.users.store');
+});
 
 Route::middleware(['auth','verified','role:medico'])
     ->get('/medico/dashboard',[DashboardController::class,'medico'])
