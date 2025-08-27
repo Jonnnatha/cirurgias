@@ -2,14 +2,14 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
-use App\Models\SurgeryRequest;
+use App\Http\Controllers\SurgeryRequestController;
 use App\Models\SurgeryChecklistItem;
+use App\Models\SurgeryRequest;
+use App\Models\User;
 use Database\Seeders\RolesSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Spatie\Permission\PermissionRegistrar;
-use App\Http\Controllers\SurgeryRequestController;
 use Illuminate\Http\Request as HttpRequest;
+use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 class SurgeryRequestTest extends TestCase
@@ -31,7 +31,8 @@ class SurgeryRequestTest extends TestCase
         $payload = [
             'date' => now()->addDay()->toDateString(),
             'start_time' => '10:00',
-            'end_time' => '11:00',
+            'duration_minutes' => 60,
+            'room_number' => 1,
             'patient_name' => 'John Doe',
             'procedure' => 'Appendectomy',
         ];
@@ -43,6 +44,9 @@ class SurgeryRequestTest extends TestCase
             'doctor_id' => $doctor->id,
             'patient_name' => 'John Doe',
             'status' => 'requested',
+            'room_number' => 1,
+            'duration_minutes' => 60,
+            'end_time' => '11:00',
         ]);
     }
 
@@ -58,6 +62,8 @@ class SurgeryRequestTest extends TestCase
             'date' => now()->addDay(),
             'start_time' => '10:00',
             'end_time' => '11:00',
+            'room_number' => 1,
+            'duration_minutes' => 60,
             'patient_name' => 'Alice',
             'procedure' => 'Proc1',
             'status' => 'requested',
@@ -68,6 +74,8 @@ class SurgeryRequestTest extends TestCase
             'date' => now()->addDays(2),
             'start_time' => '12:00',
             'end_time' => '13:00',
+            'room_number' => 2,
+            'duration_minutes' => 60,
             'patient_name' => 'Bob',
             'procedure' => 'Proc2',
             'status' => 'requested',
@@ -93,6 +101,8 @@ class SurgeryRequestTest extends TestCase
             'date' => now()->addDay(),
             'start_time' => '09:00',
             'end_time' => '10:00',
+            'room_number' => 1,
+            'duration_minutes' => 60,
             'patient_name' => 'Patient',
             'procedure' => 'Proc',
             'status' => 'requested',
@@ -130,6 +140,8 @@ class SurgeryRequestTest extends TestCase
             'date' => now()->addDay(),
             'start_time' => '09:00',
             'end_time' => '10:00',
+            'room_number' => 1,
+            'duration_minutes' => 60,
             'patient_name' => 'Patient',
             'procedure' => 'Proc',
             'status' => 'requested',
@@ -160,6 +172,8 @@ class SurgeryRequestTest extends TestCase
             'date' => now()->addDay(),
             'start_time' => '09:00',
             'end_time' => '10:00',
+            'room_number' => 1,
+            'duration_minutes' => 60,
             'patient_name' => 'Patient',
             'procedure' => 'Proc',
             'status' => 'requested',
@@ -167,7 +181,7 @@ class SurgeryRequestTest extends TestCase
         ]);
 
         $this->actingAs($nurse);
-        $controller = new SurgeryRequestController();
+        $controller = new SurgeryRequestController;
         $controller->reject($request, new HttpRequest(['reason' => 'No beds']));
 
         $this->assertEquals('rejected', $request->fresh()->status);

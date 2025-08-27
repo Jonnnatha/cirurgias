@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSurgeryRequestRequest;
-use App\Models\SurgeryRequest;
 use App\Models\SurgeryChecklistItem;
+use App\Models\SurgeryRequest;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -24,11 +25,12 @@ class SurgeryRequestController extends Controller
 
         $data->getCollection()->transform(function ($r) {
             $r->can_cancel = Auth::user()->can('delete', $r) || Auth::user()->can('update', $r);
+
             return $r;
         });
 
         return inertia('Medico/MinhasSolicitacoes', [
-            'requests' => $data
+            'requests' => $data,
         ]);
     }
 
@@ -37,19 +39,20 @@ class SurgeryRequestController extends Controller
     {
         $this->authorize('viewAny', SurgeryRequest::class);
 
-        $q = SurgeryRequest::query()->with(['doctor','nurse'])
-            ->when($req->status, fn($qq) => $qq->where('status', $req->status))
+        $q = SurgeryRequest::query()->with(['doctor', 'nurse'])
+            ->when($req->status, fn ($qq) => $qq->where('status', $req->status))
             ->orderBy('date')->orderBy('start_time');
 
         $requests = $q->paginate(20);
         $requests->getCollection()->transform(function ($r) {
             $r->can_cancel = Auth::user()->can('delete', $r) || Auth::user()->can('update', $r);
+
             return $r;
         });
 
         return inertia('Enfermeiro/Solicitacoes', [
             'requests' => $requests,
-            'filters'  => ['status' => $req->status]
+            'filters' => ['status' => $req->status],
         ]);
     }
 
@@ -67,7 +70,7 @@ class SurgeryRequestController extends Controller
         $this->authorize('update', $requestModel);
 
         return inertia('Medico/NovaSolicitacao', [
-            'request' => $requestModel
+            'request' => $requestModel,
         ]);
     }
 
@@ -76,38 +79,43 @@ class SurgeryRequestController extends Controller
     {
         $this->authorize('create', SurgeryRequest::class);
 
-        $date  = $request->date;
+        $date = $request->date;
         $start = $request->start_time;
-        $end   = $request->end_time;
+        $duration = (int) $request->duration_minutes;
+        $room = $request->room_number;
+        $end = Carbon::createFromFormat('H:i', $start)->addMinutes($duration)->format('H:i');
 
-        return DB::transaction(function () use ($date, $start, $end, $request) {
+        return DB::transaction(function () use ($date, $start, $end, $duration, $room, $request) {
 
             // 1) LOCK por dia (anti-corrida)
             DB::select('SELECT id FROM surgery_requests WHERE date = ? FOR UPDATE', [$date]);
 
-            // 2) Checagem de sobreposição (global)
+            // 2) Checagem de sobreposição (por sala)
             $overlap = SurgeryRequest::where('date', $date)
-                ->whereIn('status', ['requested','approved'])
+                ->where('room_number', $room)
+                ->whereIn('status', ['requested', 'approved'])
                 ->where('start_time', '<', $end)
                 ->where('end_time', '>', $start)
                 ->exists();
 
             if ($overlap) {
                 throw ValidationException::withMessages([
-                    'start_time' => 'Conflito de horário: já existe um agendamento que sobrepõe este intervalo.'
+                    'start_time' => 'Conflito de horário: já existe um agendamento que sobrepõe este intervalo.',
                 ]);
             }
 
             // 3) Cria a solicitação
             $surgery = SurgeryRequest::create([
-                'doctor_id'    => Auth::id(),
-                'date'         => $date,
-                'start_time'   => $start,
-                'end_time'     => $end,
+                'doctor_id' => Auth::id(),
+                'date' => $date,
+                'start_time' => $start,
+                'end_time' => $end,
+                'room_number' => $room,
+                'duration_minutes' => $duration,
                 'patient_name' => $request->patient_name,
-                'procedure'    => $request->procedure,
-                'status'       => 'requested',
-                'meta'         => ['confirm_docs' => (bool) $request->boolean('confirm_docs')],
+                'procedure' => $request->procedure,
+                'status' => 'requested',
+                'meta' => ['confirm_docs' => (bool) $request->boolean('confirm_docs')],
             ]);
 
             return back()->with('ok', 'Solicitação criada!');
@@ -119,35 +127,40 @@ class SurgeryRequestController extends Controller
     {
         $this->authorize('update', $requestModel);
 
-        $date  = $request->date;
+        $date = $request->date;
         $start = $request->start_time;
-        $end   = $request->end_time;
+        $duration = (int) $request->duration_minutes;
+        $room = $request->room_number;
+        $end = Carbon::createFromFormat('H:i', $start)->addMinutes($duration)->format('H:i');
 
-        return DB::transaction(function () use ($date, $start, $end, $request, $requestModel) {
+        return DB::transaction(function () use ($date, $start, $end, $duration, $room, $request, $requestModel) {
 
             // LOCK por dia para evitar corrida
             DB::select('SELECT id FROM surgery_requests WHERE date = ? FOR UPDATE', [$date]);
 
             $overlap = SurgeryRequest::where('date', $date)
+                ->where('room_number', $room)
                 ->where('id', '!=', $requestModel->id)
-                ->whereIn('status', ['requested','approved'])
+                ->whereIn('status', ['requested', 'approved'])
                 ->where('start_time', '<', $end)
                 ->where('end_time', '>', $start)
                 ->exists();
 
             if ($overlap) {
                 throw ValidationException::withMessages([
-                    'start_time' => 'Conflito de horário: já existe um agendamento que sobrepõe este intervalo.'
+                    'start_time' => 'Conflito de horário: já existe um agendamento que sobrepõe este intervalo.',
                 ]);
             }
 
             $requestModel->update([
-                'date'         => $date,
-                'start_time'   => $start,
-                'end_time'     => $end,
+                'date' => $date,
+                'start_time' => $start,
+                'end_time' => $end,
+                'room_number' => $room,
+                'duration_minutes' => $duration,
                 'patient_name' => $request->patient_name,
-                'procedure'    => $request->procedure,
-                'meta'         => array_merge($requestModel->meta ?? [], [
+                'procedure' => $request->procedure,
+                'meta' => array_merge($requestModel->meta ?? [], [
                     'confirm_docs' => (bool) $request->boolean('confirm_docs'),
                 ]),
             ]);
@@ -163,10 +176,10 @@ class SurgeryRequestController extends Controller
 
         $this->authorize('markChecklist', $requestModel);
 
-        $data = $req->validate(['checked' => ['required','boolean']]);
+        $data = $req->validate(['checked' => ['required', 'boolean']]);
 
         $item->update([
-            'checked'    => $data['checked'],
+            'checked' => $data['checked'],
             'checked_at' => $data['checked'] ? now() : null,
             'checked_by' => $data['checked'] ? Auth::id() : null,
         ]);
@@ -184,7 +197,7 @@ class SurgeryRequestController extends Controller
             $unchecked = $requestModel->checklistItems()->where('checked', false)->count();
             if ($unchecked > 0) {
                 throw ValidationException::withMessages([
-                    'checklist' => 'Existem itens do checklist ainda não marcados.'
+                    'checklist' => 'Existem itens do checklist ainda não marcados.',
                 ]);
             }
         }
@@ -193,6 +206,7 @@ class SurgeryRequestController extends Controller
             DB::select('SELECT id FROM surgery_requests WHERE date = ? FOR UPDATE', [$requestModel->date]);
 
             $overlap = SurgeryRequest::where('date', $requestModel->date)
+                ->where('room_number', $requestModel->room_number)
                 ->where('id', '!=', $requestModel->id)
                 ->whereIn('status', ['approved'])
                 ->where('start_time', '<', $requestModel->end_time)
@@ -201,12 +215,12 @@ class SurgeryRequestController extends Controller
 
             if ($overlap) {
                 throw ValidationException::withMessages([
-                    'approve' => 'Conflito: outro procedimento foi aprovado nesse intervalo.'
+                    'approve' => 'Conflito: outro procedimento foi aprovado nesse intervalo.',
                 ]);
             }
 
             $requestModel->update([
-                'status'   => 'approved',
+                'status' => 'approved',
                 'nurse_id' => Auth::id(),
             ]);
 
@@ -220,10 +234,10 @@ class SurgeryRequestController extends Controller
         $this->authorize('reject', $requestModel);
 
         $requestModel->update([
-            'status'   => 'rejected',
+            'status' => 'rejected',
             'nurse_id' => Auth::id(),
-            'meta'     => array_merge($requestModel->meta ?? [], [
-                'reject_reason' => (string) $req->input('reason', '')
+            'meta' => array_merge($requestModel->meta ?? [], [
+                'reject_reason' => (string) $req->input('reason', ''),
             ]),
         ]);
 
@@ -237,6 +251,7 @@ class SurgeryRequestController extends Controller
 
         if ($user->can('delete', $requestModel)) {
             $requestModel->delete();
+
             return back()->with('ok', 'Solicitação removida.');
         }
 

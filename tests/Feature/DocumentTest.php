@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
 use App\Models\SurgeryRequest;
+use App\Models\User;
+use Database\Seeders\RolesSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Database\Seeders\RolesSeeder;
 use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
@@ -29,6 +29,8 @@ class DocumentTest extends TestCase
             'date' => now()->addDay(),
             'start_time' => '09:00',
             'end_time' => '10:00',
+            'room_number' => 1,
+            'duration_minutes' => 60,
             'patient_name' => 'Patient',
             'procedure' => 'Proc',
             'status' => 'requested',
@@ -57,7 +59,7 @@ class DocumentTest extends TestCase
         $this->assertDatabaseHas('documents', [
             'original_name' => 'doc.pdf',
         ]);
-        Storage::disk('local')->assertExists('documents/' . $file->hashName());
+        Storage::disk('local')->assertExists('documents/'.$file->hashName());
     }
 
     public function test_invalid_file_type_is_rejected(): void
