@@ -56,24 +56,28 @@ class SurgeryRequestTest extends TestCase
         $other->assignRole('medico');
 
         SurgeryRequest::create([
-            'doctor_id' => $doctor->id,
-            'date' => now()->addDay(),
-            'start_time' => '10:00',
-            'end_time' => '11:00',
-            'patient_name' => 'Alice',
-            'procedure' => 'Proc1',
-            'status' => 'requested',
-            'meta' => [],
+            'doctor_id'        => $doctor->id,
+            'date'             => now()->addDay(),
+            'start_time'       => '10:00',
+            'end_time'         => '11:00',
+            'room_number'      => 1,
+            'duration_minutes' => 60,
+            'patient_name'     => 'Alice',
+            'procedure'        => 'Proc1',
+            'status'           => 'requested',
+            'meta'             => [],
         ]);
         SurgeryRequest::create([
-            'doctor_id' => $other->id,
-            'date' => now()->addDays(2),
-            'start_time' => '12:00',
-            'end_time' => '13:00',
-            'patient_name' => 'Bob',
-            'procedure' => 'Proc2',
-            'status' => 'requested',
-            'meta' => [],
+            'doctor_id'        => $other->id,
+            'date'             => now()->addDays(2),
+            'start_time'       => '12:00',
+            'end_time'         => '13:00',
+            'room_number'      => 2,
+            'duration_minutes' => 60,
+            'patient_name'     => 'Bob',
+            'procedure'        => 'Proc2',
+            'status'           => 'requested',
+            'meta'             => [],
         ]);
 
         $response = $this->actingAs($doctor)->get('/my/surgery-requests');
@@ -91,14 +95,16 @@ class SurgeryRequestTest extends TestCase
         $nurse->assignRole('enfermeiro');
 
         $request = SurgeryRequest::create([
-            'doctor_id' => $doctor->id,
-            'date' => now()->addDay(),
-            'start_time' => '09:00',
-            'end_time' => '10:00',
-            'patient_name' => 'Patient',
-            'procedure' => 'Proc',
-            'status' => 'requested',
-            'meta' => [],
+            'doctor_id'        => $doctor->id,
+            'date'             => now()->addDay(),
+            'start_time'       => '09:00',
+            'end_time'         => '10:00',
+            'room_number'      => 1,
+            'duration_minutes' => 60,
+            'patient_name'     => 'Patient',
+            'procedure'        => 'Proc',
+            'status'           => 'requested',
+            'meta'             => [],
         ]);
 
         $item = SurgeryChecklistItem::create([
@@ -128,14 +134,16 @@ class SurgeryRequestTest extends TestCase
         $nurse->assignRole('enfermeiro');
 
         $request = SurgeryRequest::create([
-            'doctor_id' => $doctor->id,
-            'date' => now()->addDay(),
-            'start_time' => '09:00',
-            'end_time' => '10:00',
-            'patient_name' => 'Patient',
-            'procedure' => 'Proc',
-            'status' => 'requested',
-            'meta' => [],
+            'doctor_id'        => $doctor->id,
+            'date'             => now()->addDay(),
+            'start_time'       => '09:00',
+            'end_time'         => '10:00',
+            'room_number'      => 1,
+            'duration_minutes' => 60,
+            'patient_name'     => 'Patient',
+            'procedure'        => 'Proc',
+            'status'           => 'requested',
+            'meta'             => [],
         ]);
 
         $response = $this->actingAs($nurse)->post(
@@ -158,14 +166,16 @@ class SurgeryRequestTest extends TestCase
         $nurse->assignRole('enfermeiro');
 
         $request = SurgeryRequest::create([
-            'doctor_id' => $doctor->id,
-            'date' => now()->addDay(),
-            'start_time' => '09:00',
-            'end_time' => '10:00',
-            'patient_name' => 'Patient',
-            'procedure' => 'Proc',
-            'status' => 'requested',
-            'meta' => [],
+            'doctor_id'        => $doctor->id,
+            'date'             => now()->addDay(),
+            'start_time'       => '09:00',
+            'end_time'         => '10:00',
+            'room_number'      => 1,
+            'duration_minutes' => 60,
+            'patient_name'     => 'Patient',
+            'procedure'        => 'Proc',
+            'status'           => 'requested',
+            'meta'             => [],
         ]);
 
         $this->actingAs($nurse);
@@ -175,5 +185,44 @@ class SurgeryRequestTest extends TestCase
         $this->assertEquals('rejected', $request->fresh()->status);
         $this->assertEquals($nurse->id, $request->fresh()->nurse_id);
         $this->assertEquals('No beds', $request->fresh()->meta['reject_reason']);
+    }
+
+    public function test_cannot_edit_room_or_duration_after_approval(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $doctor = User::factory()->create();
+        $doctor->assignRole('medico');
+
+        $request = SurgeryRequest::create([
+            'doctor_id'        => $doctor->id,
+            'date'             => now()->addDay(),
+            'start_time'       => '10:00',
+            'end_time'         => '11:00',
+            'room_number'      => 1,
+            'duration_minutes' => 60,
+            'patient_name'     => 'P',
+            'procedure'        => 'Proc',
+            'status'           => 'approved',
+            'nurse_id'         => $admin->id,
+            'meta'             => [],
+        ]);
+
+        $payload = [
+            'date'             => $request->date->toDateString(),
+            'start_time'       => '10:00',
+            'end_time'         => '11:00',
+            'room_number'      => 2,
+            'duration_minutes' => 70,
+            'patient_name'     => 'P',
+            'procedure'        => 'Proc',
+        ];
+
+        $response = $this->actingAs($admin)->put("/surgery-requests/{$request->id}", $payload);
+
+        $response->assertStatus(403);
+        $this->assertEquals(1, $request->fresh()->room_number);
+        $this->assertEquals(60, $request->fresh()->duration_minutes);
     }
 }

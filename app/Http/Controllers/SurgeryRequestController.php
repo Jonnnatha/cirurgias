@@ -128,7 +128,10 @@ class SurgeryRequestController extends Controller
     // Atualizar pedido
     public function update(StoreSurgeryRequestRequest $request, SurgeryRequest $requestModel)
     {
-        $this->authorize('update', $requestModel);
+        $this->authorize('update', [$requestModel, [
+            'room_number'     => $request->room_number,
+            'duration_minutes'=> $request->duration_minutes,
+        ]]);
 
         $date  = $request->date;
         $start = $request->start_time;
