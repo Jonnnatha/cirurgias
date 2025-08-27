@@ -16,12 +16,14 @@ const form = useForm({
     date: props.request?.date ?? '',
     start_time: props.request?.start_time ?? '',
     end_time: props.request?.end_time ?? '',
-    duration_minutes: props.request?.meta?.duration_minutes ?? '',
-    room_number: props.request?.meta?.room_number ?? '',
+    duration_minutes: props.request?.duration_minutes ?? '',
+    room_number: props.request?.room_number ?? '',
     patient_name: props.request?.patient_name ?? '',
     procedure: props.request?.procedure ?? '',
     confirm_docs: props.request?.meta?.confirm_docs ?? false,
 });
+
+const isApproved = computed(() => props.request?.status === 'approved');
 
 const endTime = computed(() => {
     if (!form.start_time || !form.duration_minutes) return '';
@@ -65,7 +67,7 @@ const submit = () => {
                                 </div>
                                 <div>
                                     <InputLabel for="duration_minutes" value="Duração (min)" />
-                                    <TextInput id="duration_minutes" type="number" min="1" class="mt-1 block w-full" v-model="form.duration_minutes" required />
+                                    <TextInput id="duration_minutes" type="number" min="1" class="mt-1 block w-full" v-model="form.duration_minutes" required :disabled="isApproved" />
                                     <InputError class="mt-2" :message="form.errors.duration_minutes" />
                                 </div>
                                 <div>
@@ -77,7 +79,7 @@ const submit = () => {
 
                             <div>
                                 <InputLabel for="room_number" value="Sala" />
-                                <select id="room_number" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" v-model="form.room_number" required>
+                                <select id="room_number" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" v-model="form.room_number" required :disabled="isApproved">
                                     <option value="" disabled>Selecione</option>
                                     <option v-for="n in 9" :key="n" :value="n">Sala {{ n }}</option>
                                 </select>

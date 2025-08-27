@@ -25,11 +25,20 @@ class SurgeryRequestPolicy
     }
 
     // Atualizar pedido:
-    // - admin sempre pode
+    // - admin sempre pode (exceto sala/duração após aprovação)
     // - enfermeiro pode editar enquanto estiver requested/rejected (antes da aprovação final)
     // - médico só pode editar o próprio pedido enquanto estiver requested
-    public function update(User $u, SurgeryRequest $r): bool
+    public function update(User $u, SurgeryRequest $r, array $data = []): bool
     {
+        if ($r->status === 'approved') {
+            $protected = ['room_number', 'duration_minutes'];
+            foreach ($protected as $field) {
+                if (array_key_exists($field, $data) && $data[$field] != $r->{$field}) {
+                    return false;
+                }
+            }
+        }
+
         if ($u->hasRole('admin')) return true;
         if ($u->hasRole('enfermeiro')) return in_array($r->status, ['requested','rejected'], true);
         if ($u->hasRole('medico')) return $r->doctor_id === $u->id && $r->status === 'requested';

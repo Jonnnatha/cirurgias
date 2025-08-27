@@ -100,14 +100,16 @@ class SurgeryRequestController extends Controller
 
             // 3) Cria a solicitação
             $surgery = SurgeryRequest::create([
-                'doctor_id'    => Auth::id(),
-                'date'         => $date,
-                'start_time'   => $start,
-                'end_time'     => $end,
-                'patient_name' => $request->patient_name,
-                'procedure'    => $request->procedure,
-                'status'       => 'requested',
-                'meta'         => ['confirm_docs' => (bool) $request->boolean('confirm_docs')],
+                'doctor_id'       => Auth::id(),
+                'date'            => $date,
+                'start_time'      => $start,
+                'end_time'        => $end,
+                'room_number'     => $request->room_number,
+                'duration_minutes'=> $request->duration_minutes,
+                'patient_name'    => $request->patient_name,
+                'procedure'       => $request->procedure,
+                'status'          => 'requested',
+                'meta'            => ['confirm_docs' => (bool) $request->boolean('confirm_docs')],
             ]);
 
             return back()->with('ok', 'Solicitação criada!');
@@ -117,7 +119,10 @@ class SurgeryRequestController extends Controller
     // Atualizar pedido
     public function update(StoreSurgeryRequestRequest $request, SurgeryRequest $requestModel)
     {
-        $this->authorize('update', $requestModel);
+        $this->authorize('update', [$requestModel, [
+            'room_number'     => $request->room_number,
+            'duration_minutes'=> $request->duration_minutes,
+        ]]);
 
         $date  = $request->date;
         $start = $request->start_time;
@@ -142,12 +147,14 @@ class SurgeryRequestController extends Controller
             }
 
             $requestModel->update([
-                'date'         => $date,
-                'start_time'   => $start,
-                'end_time'     => $end,
-                'patient_name' => $request->patient_name,
-                'procedure'    => $request->procedure,
-                'meta'         => array_merge($requestModel->meta ?? [], [
+                'date'            => $date,
+                'start_time'      => $start,
+                'end_time'        => $end,
+                'room_number'     => $request->room_number,
+                'duration_minutes'=> $request->duration_minutes,
+                'patient_name'    => $request->patient_name,
+                'procedure'       => $request->procedure,
+                'meta'            => array_merge($requestModel->meta ?? [], [
                     'confirm_docs' => (bool) $request->boolean('confirm_docs'),
                 ]),
             ]);
