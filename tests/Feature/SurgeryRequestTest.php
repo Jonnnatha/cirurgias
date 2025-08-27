@@ -32,6 +32,8 @@ class SurgeryRequestTest extends TestCase
             'date' => now()->addDay()->toDateString(),
             'start_time' => '10:00',
             'end_time' => '11:00',
+            'duration_minutes' => 60,
+            'room_number' => 1,
             'patient_name' => 'John Doe',
             'procedure' => 'Appendectomy',
         ];

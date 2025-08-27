@@ -18,6 +18,8 @@ class StoreSurgeryRequestRequest extends FormRequest
             'date'         => ['required','date','after_or_equal:today'],
             'start_time'   => ['required','date_format:H:i'],
             'end_time'     => ['required','date_format:H:i','after:start_time'],
+            'room_number'  => ['required','integer','between:1,9'],
+            'duration_minutes' => ['required','integer','min:1'],
             'patient_name' => ['required','string','max:120'],
             'procedure'    => ['required','string','max:160'],
             // opcional: confirmar que o médico marcou "docs ok"
