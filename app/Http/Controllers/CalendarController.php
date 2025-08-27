@@ -17,7 +17,7 @@ class CalendarController extends Controller
                 'end_date'    => ['required','date','after_or_equal:start_date'],
             ]);
 
-            $surgeries = SurgeryRequest::where('meta', 'like', '%"room_number":'.$data['room_number'].'%')
+            $surgeries = SurgeryRequest::where('room_number', $data['room_number'])
                 ->whereBetween('date', [$data['start_date'], $data['end_date']])
                 ->orderBy('date')
                 ->orderBy('start_time')

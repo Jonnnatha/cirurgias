@@ -25,14 +25,16 @@ class DocumentTest extends TestCase
     protected function makeRequest(User $doctor): SurgeryRequest
     {
         return SurgeryRequest::create([
-            'doctor_id' => $doctor->id,
-            'date' => now()->addDay(),
-            'start_time' => '09:00',
-            'end_time' => '10:00',
-            'patient_name' => 'Patient',
-            'procedure' => 'Proc',
-            'status' => 'requested',
-            'meta' => [],
+            'doctor_id'        => $doctor->id,
+            'date'             => now()->addDay(),
+            'start_time'       => '09:00',
+            'end_time'         => '10:00',
+            'room_number'      => 1,
+            'duration_minutes' => 60,
+            'patient_name'     => 'Patient',
+            'procedure'        => 'Proc',
+            'status'           => 'requested',
+            'meta'             => [],
         ]);
     }
 

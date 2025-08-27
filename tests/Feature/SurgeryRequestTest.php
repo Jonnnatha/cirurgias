@@ -56,24 +56,28 @@ class SurgeryRequestTest extends TestCase
         $other->assignRole('medico');
 
         SurgeryRequest::create([
-            'doctor_id' => $doctor->id,
-            'date' => now()->addDay(),
-            'start_time' => '10:00',
-            'end_time' => '11:00',
-            'patient_name' => 'Alice',
-            'procedure' => 'Proc1',
-            'status' => 'requested',
-            'meta' => [],
+            'doctor_id'        => $doctor->id,
+            'date'             => now()->addDay(),
+            'start_time'       => '10:00',
+            'end_time'         => '11:00',
+            'room_number'      => 1,
+            'duration_minutes' => 60,
+            'patient_name'     => 'Alice',
+            'procedure'        => 'Proc1',
+            'status'           => 'requested',
+            'meta'             => [],
         ]);
         SurgeryRequest::create([
-            'doctor_id' => $other->id,
-            'date' => now()->addDays(2),
-            'start_time' => '12:00',
-            'end_time' => '13:00',
-            'patient_name' => 'Bob',
-            'procedure' => 'Proc2',
-            'status' => 'requested',
-            'meta' => [],
+            'doctor_id'        => $other->id,
+            'date'             => now()->addDays(2),
+            'start_time'       => '12:00',
+            'end_time'         => '13:00',
+            'room_number'      => 2,
+            'duration_minutes' => 60,
+            'patient_name'     => 'Bob',
+            'procedure'        => 'Proc2',
+            'status'           => 'requested',
+            'meta'             => [],
         ]);
 
         $response = $this->actingAs($doctor)->get('/my/surgery-requests');
@@ -91,14 +95,16 @@ class SurgeryRequestTest extends TestCase
         $nurse->assignRole('enfermeiro');
 
         $request = SurgeryRequest::create([
-            'doctor_id' => $doctor->id,
-            'date' => now()->addDay(),
-            'start_time' => '09:00',
-            'end_time' => '10:00',
-            'patient_name' => 'Patient',
-            'procedure' => 'Proc',
-            'status' => 'requested',
-            'meta' => [],
+            'doctor_id'        => $doctor->id,
+            'date'             => now()->addDay(),
+            'start_time'       => '09:00',
+            'end_time'         => '10:00',
+            'room_number'      => 1,
+            'duration_minutes' => 60,
+            'patient_name'     => 'Patient',
+            'procedure'        => 'Proc',
+            'status'           => 'requested',
+            'meta'             => [],
         ]);
 
         $item = SurgeryChecklistItem::create([
@@ -128,14 +134,16 @@ class SurgeryRequestTest extends TestCase
         $nurse->assignRole('enfermeiro');
 
         $request = SurgeryRequest::create([
-            'doctor_id' => $doctor->id,
-            'date' => now()->addDay(),
-            'start_time' => '09:00',
-            'end_time' => '10:00',
-            'patient_name' => 'Patient',
-            'procedure' => 'Proc',
-            'status' => 'requested',
-            'meta' => [],
+            'doctor_id'        => $doctor->id,
+            'date'             => now()->addDay(),
+            'start_time'       => '09:00',
+            'end_time'         => '10:00',
+            'room_number'      => 1,
+            'duration_minutes' => 60,
+            'patient_name'     => 'Patient',
+            'procedure'        => 'Proc',
+            'status'           => 'requested',
+            'meta'             => [],
         ]);
 
         $response = $this->actingAs($nurse)->post(
@@ -158,14 +166,16 @@ class SurgeryRequestTest extends TestCase
         $nurse->assignRole('enfermeiro');
 
         $request = SurgeryRequest::create([
-            'doctor_id' => $doctor->id,
-            'date' => now()->addDay(),
-            'start_time' => '09:00',
-            'end_time' => '10:00',
-            'patient_name' => 'Patient',
-            'procedure' => 'Proc',
-            'status' => 'requested',
-            'meta' => [],
+            'doctor_id'        => $doctor->id,
+            'date'             => now()->addDay(),
+            'start_time'       => '09:00',
+            'end_time'         => '10:00',
+            'room_number'      => 1,
+            'duration_minutes' => 60,
+            'patient_name'     => 'Patient',
+            'procedure'        => 'Proc',
+            'status'           => 'requested',
+            'meta'             => [],
         ]);
 
         $this->actingAs($nurse);
