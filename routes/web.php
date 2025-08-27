@@ -108,7 +108,7 @@ Route::middleware('auth')->group(function () {
      */
     Route::middleware(['role:enfermeiro|admin'])->group(function () {
         // listar/filtros para a enfermagem
-        Route::get('/surgery-requests', [SurgeryRequestController::class, 'index'])
+        Route::get('/surgery-requests/{room?}', [SurgeryRequestController::class, 'index'])
             ->name('surgery-requests.index');
 
         // marcar item do checklist (autorização via Policy do pedido pai)

@@ -39,6 +39,7 @@ class SurgeryRequestController extends Controller
 
         $q = SurgeryRequest::query()->with(['doctor','nurse'])
             ->when($req->status, fn($qq) => $qq->where('status', $req->status))
+            ->when($req->room, fn($qq) => $qq->where('room_number', $req->room))
             ->orderBy('date')->orderBy('start_time');
 
         $requests = $q->paginate(20);
@@ -49,7 +50,7 @@ class SurgeryRequestController extends Controller
 
         return inertia('Enfermeiro/Solicitacoes', [
             'requests' => $requests,
-            'filters'  => ['status' => $req->status]
+            'filters'  => ['status' => $req->status, 'room' => $req->room]
         ]);
     }
 
