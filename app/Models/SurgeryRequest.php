@@ -3,19 +3,19 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Document;
 
 class SurgeryRequest extends Model
 {
     protected $fillable = [
-        'doctor_id','nurse_id','date','start_time','end_time',
-        'room_number','duration_minutes',
-        'patient_name','procedure','status','meta'
+        'doctor_id', 'nurse_id', 'date', 'start_time', 'end_time',
+        'room_number', 'duration_minutes',
+        'patient_name', 'procedure', 'status', 'meta',
     ];
 
     protected $casts = [
         'date' => 'date',
         'meta' => 'array',
+        'room_number' => 'integer',
         'duration_minutes' => 'integer',
     ];
 

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSurgeryRequestRequest;
-use App\Models\SurgeryRequest;
 use App\Models\SurgeryChecklistItem;
+use App\Models\SurgeryRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -24,11 +24,12 @@ class SurgeryRequestController extends Controller
 
         $data->getCollection()->transform(function ($r) {
             $r->can_cancel = Auth::user()->can('delete', $r) || Auth::user()->can('update', $r);
+
             return $r;
         });
 
         return inertia('Medico/MinhasSolicitacoes', [
-            'requests' => $data
+            'requests' => $data,
         ]);
     }
 
@@ -37,19 +38,20 @@ class SurgeryRequestController extends Controller
     {
         $this->authorize('viewAny', SurgeryRequest::class);
 
-        $q = SurgeryRequest::query()->with(['doctor','nurse'])
-            ->when($req->status, fn($qq) => $qq->where('status', $req->status))
+        $q = SurgeryRequest::query()->with(['doctor', 'nurse'])
+            ->when($req->status, fn ($qq) => $qq->where('status', $req->status))
             ->orderBy('date')->orderBy('start_time');
 
         $requests = $q->paginate(20);
         $requests->getCollection()->transform(function ($r) {
             $r->can_cancel = Auth::user()->can('delete', $r) || Auth::user()->can('update', $r);
+
             return $r;
         });
 
         return inertia('Enfermeiro/Solicitacoes', [
             'requests' => $requests,
-            'filters'  => ['status' => $req->status]
+            'filters' => ['status' => $req->status],
         ]);
     }
 
@@ -67,7 +69,7 @@ class SurgeryRequestController extends Controller
         $this->authorize('update', $requestModel);
 
         return inertia('Medico/NovaSolicitacao', [
-            'request' => $requestModel
+            'request' => $requestModel,
         ]);
     }
 
@@ -75,19 +77,19 @@ class SurgeryRequestController extends Controller
     public function store(StoreSurgeryRequestRequest $request)
     {
         $this->authorize('create', SurgeryRequest::class);
+        $data = $request->validated();
+        $date = $data['date'];
+        $start = $data['start_time'];
+        $end = $data['end_time'];
 
-        $date  = $request->date;
-        $start = $request->start_time;
-        $end   = $request->end_time;
-
-        return DB::transaction(function () use ($date, $start, $end, $request) {
+        return DB::transaction(function () use ($date, $start, $end, $data) {
 
             // 1) LOCK por dia (anti-corrida)
             DB::select('SELECT id FROM surgery_requests WHERE date = ? FOR UPDATE', [$date]);
 
             // 2) Checagem de sobreposição (global)
             $conflict = SurgeryRequest::where('date', $date)
-                ->whereIn('status', ['requested','approved'])
+                ->whereIn('status', ['requested', 'approved'])
                 ->where('start_time', '<', $end)
                 ->where('end_time', '>', $start)
                 ->first();
@@ -108,17 +110,17 @@ class SurgeryRequestController extends Controller
             }
 
             // 3) Cria a solicitação
-            $surgery = SurgeryRequest::create([
-                'doctor_id'       => Auth::id(),
-                'date'            => $date,
-                'start_time'      => $start,
-                'end_time'        => $end,
-                'room_number'     => $request->room_number,
-                'duration_minutes'=> $request->duration_minutes,
-                'patient_name'    => $request->patient_name,
-                'procedure'       => $request->procedure,
-                'status'          => 'requested',
-                'meta'            => ['confirm_docs' => (bool) $request->boolean('confirm_docs')],
+            SurgeryRequest::create([
+                'doctor_id' => Auth::id(),
+                'date' => $date,
+                'start_time' => $start,
+                'end_time' => $end,
+                'room_number' => $data['room_number'],
+                'duration_minutes' => $data['duration_minutes'],
+                'patient_name' => $data['patient_name'],
+                'procedure' => $data['procedure'],
+                'status' => 'requested',
+                'meta' => ['confirm_docs' => (bool) ($data['confirm_docs'] ?? false)],
             ]);
 
             return back()->with('ok', 'Solicitação criada!');
@@ -128,23 +130,25 @@ class SurgeryRequestController extends Controller
     // Atualizar pedido
     public function update(StoreSurgeryRequestRequest $request, SurgeryRequest $requestModel)
     {
+        $data = $request->validated();
+
         $this->authorize('update', [$requestModel, [
-            'room_number'     => $request->room_number,
-            'duration_minutes'=> $request->duration_minutes,
+            'room_number' => $data['room_number'],
+            'duration_minutes' => $data['duration_minutes'],
         ]]);
 
-        $date  = $request->date;
-        $start = $request->start_time;
-        $end   = $request->end_time;
+        $date = $data['date'];
+        $start = $data['start_time'];
+        $end = $data['end_time'];
 
-        return DB::transaction(function () use ($date, $start, $end, $request, $requestModel) {
+        return DB::transaction(function () use ($date, $start, $end, $data, $requestModel) {
 
             // LOCK por dia para evitar corrida
             DB::select('SELECT id FROM surgery_requests WHERE date = ? FOR UPDATE', [$date]);
 
             $conflict = SurgeryRequest::where('date', $date)
                 ->where('id', '!=', $requestModel->id)
-                ->whereIn('status', ['requested','approved'])
+                ->whereIn('status', ['requested', 'approved'])
                 ->where('start_time', '<', $end)
                 ->where('end_time', '>', $start)
                 ->first();
@@ -165,15 +169,15 @@ class SurgeryRequestController extends Controller
             }
 
             $requestModel->update([
-                'date'            => $date,
-                'start_time'      => $start,
-                'end_time'        => $end,
-                'room_number'     => $request->room_number,
-                'duration_minutes'=> $request->duration_minutes,
-                'patient_name'    => $request->patient_name,
-                'procedure'       => $request->procedure,
-                'meta'            => array_merge($requestModel->meta ?? [], [
-                    'confirm_docs' => (bool) $request->boolean('confirm_docs'),
+                'date' => $date,
+                'start_time' => $start,
+                'end_time' => $end,
+                'room_number' => $data['room_number'],
+                'duration_minutes' => $data['duration_minutes'],
+                'patient_name' => $data['patient_name'],
+                'procedure' => $data['procedure'],
+                'meta' => array_merge($requestModel->meta ?? [], [
+                    'confirm_docs' => (bool) ($data['confirm_docs'] ?? false),
                 ]),
             ]);
 
@@ -188,10 +192,10 @@ class SurgeryRequestController extends Controller
 
         $this->authorize('markChecklist', $requestModel);
 
-        $data = $req->validate(['checked' => ['required','boolean']]);
+        $data = $req->validate(['checked' => ['required', 'boolean']]);
 
         $item->update([
-            'checked'    => $data['checked'],
+            'checked' => $data['checked'],
             'checked_at' => $data['checked'] ? now() : null,
             'checked_by' => $data['checked'] ? Auth::id() : null,
         ]);
@@ -209,7 +213,7 @@ class SurgeryRequestController extends Controller
             $unchecked = $requestModel->checklistItems()->where('checked', false)->count();
             if ($unchecked > 0) {
                 throw ValidationException::withMessages([
-                    'checklist' => 'Existem itens do checklist ainda não marcados.'
+                    'checklist' => 'Existem itens do checklist ainda não marcados.',
                 ]);
             }
         }
@@ -240,7 +244,7 @@ class SurgeryRequestController extends Controller
             }
 
             $requestModel->update([
-                'status'   => 'approved',
+                'status' => 'approved',
                 'nurse_id' => Auth::id(),
             ]);
 
@@ -254,10 +258,10 @@ class SurgeryRequestController extends Controller
         $this->authorize('reject', $requestModel);
 
         $requestModel->update([
-            'status'   => 'rejected',
+            'status' => 'rejected',
             'nurse_id' => Auth::id(),
-            'meta'     => array_merge($requestModel->meta ?? [], [
-                'reject_reason' => (string) $req->input('reason', '')
+            'meta' => array_merge($requestModel->meta ?? [], [
+                'reject_reason' => (string) $req->input('reason', ''),
             ]),
         ]);
 
@@ -271,6 +275,7 @@ class SurgeryRequestController extends Controller
 
         if ($user->can('delete', $requestModel)) {
             $requestModel->delete();
+
             return back()->with('ok', 'Solicitação removida.');
         }
 
