@@ -9,12 +9,14 @@ class SurgeryRequest extends Model
 {
     protected $fillable = [
         'doctor_id','nurse_id','date','start_time','end_time',
+        'room_number','duration_minutes',
         'patient_name','procedure','status','meta'
     ];
 
     protected $casts = [
         'date' => 'date',
         'meta' => 'array',
+        'duration_minutes' => 'integer',
     ];
 
     public function doctor()
