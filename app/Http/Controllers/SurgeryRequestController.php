@@ -86,28 +86,39 @@ class SurgeryRequestController extends Controller
             DB::select('SELECT id FROM surgery_requests WHERE date = ? FOR UPDATE', [$date]);
 
             // 2) Checagem de sobreposição (global)
-            $overlap = SurgeryRequest::where('date', $date)
+            $conflict = SurgeryRequest::where('date', $date)
                 ->whereIn('status', ['requested','approved'])
                 ->where('start_time', '<', $end)
                 ->where('end_time', '>', $start)
-                ->exists();
+                ->first();
 
-            if ($overlap) {
+            if ($conflict) {
+                $msg = sprintf(
+                    'Conflito de horário com cirurgia na sala %s de %s às %s.',
+                    $conflict->room_number,
+                    substr($conflict->start_time, 0, 5),
+                    substr($conflict->end_time, 0, 5)
+                );
+                if ($conflict->patient_name) {
+                    $msg .= ' Paciente: '.$conflict->patient_name.'.';
+                }
                 throw ValidationException::withMessages([
-                    'start_time' => 'Conflito de horário: já existe um agendamento que sobrepõe este intervalo.'
+                    'start_time' => $msg,
                 ]);
             }
 
             // 3) Cria a solicitação
             $surgery = SurgeryRequest::create([
-                'doctor_id'    => Auth::id(),
-                'date'         => $date,
-                'start_time'   => $start,
-                'end_time'     => $end,
-                'patient_name' => $request->patient_name,
-                'procedure'    => $request->procedure,
-                'status'       => 'requested',
-                'meta'         => ['confirm_docs' => (bool) $request->boolean('confirm_docs')],
+                'doctor_id'       => Auth::id(),
+                'date'            => $date,
+                'start_time'      => $start,
+                'end_time'        => $end,
+                'room_number'     => $request->room_number,
+                'duration_minutes'=> $request->duration_minutes,
+                'patient_name'    => $request->patient_name,
+                'procedure'       => $request->procedure,
+                'status'          => 'requested',
+                'meta'            => ['confirm_docs' => (bool) $request->boolean('confirm_docs')],
             ]);
 
             return back()->with('ok', 'Solicitação criada!');
@@ -128,26 +139,37 @@ class SurgeryRequestController extends Controller
             // LOCK por dia para evitar corrida
             DB::select('SELECT id FROM surgery_requests WHERE date = ? FOR UPDATE', [$date]);
 
-            $overlap = SurgeryRequest::where('date', $date)
+            $conflict = SurgeryRequest::where('date', $date)
                 ->where('id', '!=', $requestModel->id)
                 ->whereIn('status', ['requested','approved'])
                 ->where('start_time', '<', $end)
                 ->where('end_time', '>', $start)
-                ->exists();
+                ->first();
 
-            if ($overlap) {
+            if ($conflict) {
+                $msg = sprintf(
+                    'Conflito de horário com cirurgia na sala %s de %s às %s.',
+                    $conflict->room_number,
+                    substr($conflict->start_time, 0, 5),
+                    substr($conflict->end_time, 0, 5)
+                );
+                if ($conflict->patient_name) {
+                    $msg .= ' Paciente: '.$conflict->patient_name.'.';
+                }
                 throw ValidationException::withMessages([
-                    'start_time' => 'Conflito de horário: já existe um agendamento que sobrepõe este intervalo.'
+                    'start_time' => $msg,
                 ]);
             }
 
             $requestModel->update([
-                'date'         => $date,
-                'start_time'   => $start,
-                'end_time'     => $end,
-                'patient_name' => $request->patient_name,
-                'procedure'    => $request->procedure,
-                'meta'         => array_merge($requestModel->meta ?? [], [
+                'date'            => $date,
+                'start_time'      => $start,
+                'end_time'        => $end,
+                'room_number'     => $request->room_number,
+                'duration_minutes'=> $request->duration_minutes,
+                'patient_name'    => $request->patient_name,
+                'procedure'       => $request->procedure,
+                'meta'            => array_merge($requestModel->meta ?? [], [
                     'confirm_docs' => (bool) $request->boolean('confirm_docs'),
                 ]),
             ]);
@@ -192,16 +214,25 @@ class SurgeryRequestController extends Controller
         return DB::transaction(function () use ($requestModel) {
             DB::select('SELECT id FROM surgery_requests WHERE date = ? FOR UPDATE', [$requestModel->date]);
 
-            $overlap = SurgeryRequest::where('date', $requestModel->date)
+            $conflict = SurgeryRequest::where('date', $requestModel->date)
                 ->where('id', '!=', $requestModel->id)
                 ->whereIn('status', ['approved'])
                 ->where('start_time', '<', $requestModel->end_time)
                 ->where('end_time', '>', $requestModel->start_time)
-                ->exists();
+                ->first();
 
-            if ($overlap) {
+            if ($conflict) {
+                $msg = sprintf(
+                    'Conflito: sala %s ocupada de %s às %s.',
+                    $conflict->room_number,
+                    substr($conflict->start_time, 0, 5),
+                    substr($conflict->end_time, 0, 5)
+                );
+                if ($conflict->patient_name) {
+                    $msg .= ' Paciente: '.$conflict->patient_name.'.';
+                }
                 throw ValidationException::withMessages([
-                    'approve' => 'Conflito: outro procedimento foi aprovado nesse intervalo.'
+                    'approve' => $msg,
                 ]);
             }
 
