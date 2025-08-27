@@ -176,4 +176,46 @@ class SurgeryRequestTest extends TestCase
         $this->assertEquals($nurse->id, $request->fresh()->nurse_id);
         $this->assertEquals('No beds', $request->fresh()->meta['reject_reason']);
     }
+
+    public function test_index_can_filter_by_room_number(): void
+    {
+        $this->withoutVite();
+
+        $doctor = User::factory()->create();
+        $doctor->assignRole('medico');
+        $nurse = User::factory()->create();
+        $nurse->assignRole('enfermeiro');
+
+        SurgeryRequest::create([
+            'doctor_id' => $doctor->id,
+            'date' => now()->addDay(),
+            'start_time' => '09:00',
+            'end_time' => '10:00',
+            'room_number' => 1,
+            'duration_minutes' => 60,
+            'patient_name' => 'Alice',
+            'procedure' => 'Proc1',
+            'status' => 'requested',
+            'meta' => [],
+        ]);
+
+        SurgeryRequest::create([
+            'doctor_id' => $doctor->id,
+            'date' => now()->addDays(2),
+            'start_time' => '11:00',
+            'end_time' => '12:00',
+            'room_number' => 2,
+            'duration_minutes' => 60,
+            'patient_name' => 'Bob',
+            'procedure' => 'Proc2',
+            'status' => 'requested',
+            'meta' => [],
+        ]);
+
+        $response = $this->actingAs($nurse)->get('/surgery-requests?room_number=1');
+
+        $response->assertStatus(200);
+        $response->assertSee('Alice');
+        $response->assertDontSee('Bob');
+    }
 }
