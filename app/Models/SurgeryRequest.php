@@ -8,7 +8,7 @@ use App\Models\Document;
 class SurgeryRequest extends Model
 {
     protected $fillable = [
-        'doctor_id','nurse_id','date','start_time','end_time',
+        'doctor_id','nurse_id','date','start_time','end_time','room',
         'patient_name','procedure','status','meta'
     ];
 

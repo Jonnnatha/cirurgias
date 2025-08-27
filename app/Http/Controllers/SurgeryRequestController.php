@@ -79,17 +79,20 @@ class SurgeryRequestController extends Controller
         $date  = $request->date;
         $start = $request->start_time;
         $end   = $request->end_time;
+        $room  = $request->room;
 
-        return DB::transaction(function () use ($date, $start, $end, $request) {
+        return DB::transaction(function () use ($date, $start, $end, $room, $request) {
 
             // 1) LOCK por dia (anti-corrida)
-            DB::select('SELECT id FROM surgery_requests WHERE date = ? FOR UPDATE', [$date]);
+            if (DB::getDriverName() !== 'sqlite') {
+                DB::select('SELECT id FROM surgery_requests WHERE date = ? FOR UPDATE', [$date]);
+            }
 
             // 2) Checagem de sobreposição (global)
-            $overlap = SurgeryRequest::where('date', $date)
+            $overlap = SurgeryRequest::whereDate('date', $date)
+                ->where('room', $room)
                 ->whereIn('status', ['requested','approved'])
-                ->where('start_time', '<', $end)
-                ->where('end_time', '>', $start)
+                ->whereRaw('start_time < ? AND end_time > ?', [$end, $start])
                 ->exists();
 
             if ($overlap) {
@@ -104,6 +107,7 @@ class SurgeryRequestController extends Controller
                 'date'         => $date,
                 'start_time'   => $start,
                 'end_time'     => $end,
+                'room'         => $room,
                 'patient_name' => $request->patient_name,
                 'procedure'    => $request->procedure,
                 'status'       => 'requested',
@@ -122,17 +126,20 @@ class SurgeryRequestController extends Controller
         $date  = $request->date;
         $start = $request->start_time;
         $end   = $request->end_time;
+        $room  = $request->room;
 
-        return DB::transaction(function () use ($date, $start, $end, $request, $requestModel) {
+        return DB::transaction(function () use ($date, $start, $end, $room, $request, $requestModel) {
 
             // LOCK por dia para evitar corrida
-            DB::select('SELECT id FROM surgery_requests WHERE date = ? FOR UPDATE', [$date]);
+            if (DB::getDriverName() !== 'sqlite') {
+                DB::select('SELECT id FROM surgery_requests WHERE date = ? FOR UPDATE', [$date]);
+            }
 
-            $overlap = SurgeryRequest::where('date', $date)
+            $overlap = SurgeryRequest::whereDate('date', $date)
+                ->where('room', $room)
                 ->where('id', '!=', $requestModel->id)
                 ->whereIn('status', ['requested','approved'])
-                ->where('start_time', '<', $end)
-                ->where('end_time', '>', $start)
+                ->whereRaw('start_time < ? AND end_time > ?', [$end, $start])
                 ->exists();
 
             if ($overlap) {
@@ -145,6 +152,7 @@ class SurgeryRequestController extends Controller
                 'date'         => $date,
                 'start_time'   => $start,
                 'end_time'     => $end,
+                'room'         => $room,
                 'patient_name' => $request->patient_name,
                 'procedure'    => $request->procedure,
                 'meta'         => array_merge($requestModel->meta ?? [], [
@@ -190,9 +198,12 @@ class SurgeryRequestController extends Controller
         }
 
         return DB::transaction(function () use ($requestModel) {
-            DB::select('SELECT id FROM surgery_requests WHERE date = ? FOR UPDATE', [$requestModel->date]);
+            if (DB::getDriverName() !== 'sqlite') {
+                DB::select('SELECT id FROM surgery_requests WHERE date = ? FOR UPDATE', [$requestModel->date]);
+            }
 
             $overlap = SurgeryRequest::where('date', $requestModel->date)
+                ->where('room', $requestModel->room)
                 ->where('id', '!=', $requestModel->id)
                 ->whereIn('status', ['approved'])
                 ->where('start_time', '<', $requestModel->end_time)

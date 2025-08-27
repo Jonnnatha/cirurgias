@@ -5,6 +5,7 @@ use App\Http\Controllers\SurgeryRequestController;
 use App\Http\Controllers\ChecklistController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -51,6 +52,8 @@ Route::middleware(['auth','verified','role:enfermeiro'])
 Route::middleware('auth')->group(function () {
     Route::get('/calendar', fn () => Inertia::render('Calendar'))
         ->name('calendar');
+    Route::get('/calendar/data', [CalendarController::class, 'index'])
+        ->name('calendar.data');
     // Perfil do usuário (Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

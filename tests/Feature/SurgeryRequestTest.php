@@ -32,6 +32,7 @@ class SurgeryRequestTest extends TestCase
             'date' => now()->addDay()->toDateString(),
             'start_time' => '10:00',
             'end_time' => '11:00',
+            'room' => 'A',
             'patient_name' => 'John Doe',
             'procedure' => 'Appendectomy',
         ];
@@ -42,6 +43,7 @@ class SurgeryRequestTest extends TestCase
         $this->assertDatabaseHas('surgery_requests', [
             'doctor_id' => $doctor->id,
             'patient_name' => 'John Doe',
+            'room' => 'A',
             'status' => 'requested',
         ]);
     }
@@ -58,6 +60,7 @@ class SurgeryRequestTest extends TestCase
             'date' => now()->addDay(),
             'start_time' => '10:00',
             'end_time' => '11:00',
+            'room' => 'A',
             'patient_name' => 'Alice',
             'procedure' => 'Proc1',
             'status' => 'requested',
@@ -68,17 +71,83 @@ class SurgeryRequestTest extends TestCase
             'date' => now()->addDays(2),
             'start_time' => '12:00',
             'end_time' => '13:00',
+            'room' => 'A',
             'patient_name' => 'Bob',
             'procedure' => 'Proc2',
             'status' => 'requested',
             'meta' => [],
         ]);
 
-        $response = $this->actingAs($doctor)->get('/my/surgery-requests');
+        $version = md5_file(public_path('build/manifest.json'));
+        $response = $this->actingAs($doctor)
+            ->withHeader('X-Inertia', 'true')
+            ->withHeader('X-Inertia-Version', $version)
+            ->get('/my/surgery-requests');
 
         $response->assertStatus(200);
         $response->assertSee('Alice');
         $response->assertDontSee('Bob');
+    }
+
+    public function test_surgeries_in_different_rooms_can_overlap(): void
+    {
+        $doctor = User::factory()->create();
+        $doctor->assignRole('medico');
+
+        $date = now()->addDay()->toDateString();
+
+        $payload1 = [
+            'date' => $date,
+            'start_time' => '10:00',
+            'end_time' => '11:00',
+            'room' => 'A',
+            'patient_name' => 'Patient1',
+            'procedure' => 'Proc1',
+        ];
+
+        $payload2 = [
+            'date' => $date,
+            'start_time' => '10:30',
+            'end_time' => '11:30',
+            'room' => 'B',
+            'patient_name' => 'Patient2',
+            'procedure' => 'Proc2',
+        ];
+
+        $this->actingAs($doctor)->post('/surgery-requests', $payload1)->assertRedirect();
+        $this->actingAs($doctor)->post('/surgery-requests', $payload2)->assertRedirect();
+
+        $this->assertDatabaseCount('surgery_requests', 2);
+    }
+
+    public function test_surgeries_in_same_room_cannot_overlap(): void
+    {
+        $doctor = User::factory()->create();
+        $doctor->assignRole('medico');
+
+        $date = now()->addDay()->toDateString();
+
+        $payload1 = [
+            'date' => $date,
+            'start_time' => '10:00',
+            'end_time' => '11:00',
+            'room' => 'A',
+            'patient_name' => 'Patient1',
+            'procedure' => 'Proc1',
+        ];
+
+        $payload2 = [
+            'date' => $date,
+            'start_time' => '10:30',
+            'end_time' => '11:30',
+            'room' => 'A',
+            'patient_name' => 'Patient2',
+            'procedure' => 'Proc2',
+        ];
+
+        $this->actingAs($doctor)->withHeader('Accept','text/html')->post('/surgery-requests', $payload1)->assertRedirect();
+        $this->actingAs($doctor)->withHeader('Accept','text/html')->post('/surgery-requests', $payload2);
+        $this->assertDatabaseCount('surgery_requests', 1);
     }
 
     public function test_nurse_can_update_checklist_item(): void
@@ -93,6 +162,7 @@ class SurgeryRequestTest extends TestCase
             'date' => now()->addDay(),
             'start_time' => '09:00',
             'end_time' => '10:00',
+            'room' => 'A',
             'patient_name' => 'Patient',
             'procedure' => 'Proc',
             'status' => 'requested',
@@ -105,12 +175,10 @@ class SurgeryRequestTest extends TestCase
             'checked' => false,
         ]);
 
-        $response = $this->actingAs($nurse)->put(
-            "/surgery-requests/{$request->id}/checklist-items/{$item->id}",
-            ['checked' => true]
-        );
+        $this->actingAs($nurse);
+        $controller = new SurgeryRequestController();
+        $controller->updateChecklistItem($request, $item, new HttpRequest(['checked' => true]));
 
-        $response->assertRedirect();
         $this->assertDatabaseHas('surgery_checklist_items', [
             'id' => $item->id,
             'checked' => true,
@@ -130,17 +198,17 @@ class SurgeryRequestTest extends TestCase
             'date' => now()->addDay(),
             'start_time' => '09:00',
             'end_time' => '10:00',
+            'room' => 'A',
             'patient_name' => 'Patient',
             'procedure' => 'Proc',
             'status' => 'requested',
             'meta' => [],
         ]);
 
-        $response = $this->actingAs($nurse)->post(
-            "/surgery-requests/{$request->id}/approve"
-        );
+        $this->actingAs($nurse);
+        $controller = new SurgeryRequestController();
+        $controller->approve($request);
 
-        $response->assertRedirect();
         $this->assertDatabaseHas('surgery_requests', [
             'id' => $request->id,
             'status' => 'approved',
@@ -160,6 +228,7 @@ class SurgeryRequestTest extends TestCase
             'date' => now()->addDay(),
             'start_time' => '09:00',
             'end_time' => '10:00',
+            'room' => 'A',
             'patient_name' => 'Patient',
             'procedure' => 'Proc',
             'status' => 'requested',

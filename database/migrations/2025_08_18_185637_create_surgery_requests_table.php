@@ -21,6 +21,7 @@ return new class extends Migration
             $t->date('date')->index();
             $t->time('start_time');
             $t->time('end_time');
+            $t->string('room');
 
             // Dados mínimos do caso
             $t->string('patient_name');
