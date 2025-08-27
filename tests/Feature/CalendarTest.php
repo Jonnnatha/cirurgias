@@ -30,20 +30,24 @@ class CalendarTest extends TestCase
             'date' => '2025-01-10',
             'start_time' => '10:00',
             'end_time' => '11:00',
+            'room_number' => 1,
+            'duration_minutes' => 60,
             'patient_name' => 'A',
             'procedure' => 'Proc',
             'status' => 'approved',
-            'meta' => ['room_number' => 1],
+            'meta' => [],
         ]);
         SurgeryRequest::create([
             'doctor_id' => $doctor->id,
             'date' => '2025-01-10',
             'start_time' => '12:00',
             'end_time' => '13:00',
+            'room_number' => 2,
+            'duration_minutes' => 60,
             'patient_name' => 'B',
             'procedure' => 'Proc',
             'status' => 'approved',
-            'meta' => ['room_number' => 2],
+            'meta' => [],
         ]);
 
         $response = $this->actingAs($doctor)->getJson('/calendar?room_number=1&start_date=2025-01-01&end_date=2025-01-31');

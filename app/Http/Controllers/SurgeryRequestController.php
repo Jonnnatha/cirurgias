@@ -104,6 +104,8 @@ class SurgeryRequestController extends Controller
                 'date'         => $date,
                 'start_time'   => $start,
                 'end_time'     => $end,
+                'room_number'  => $request->room_number,
+                'duration_minutes' => $request->duration_minutes,
                 'patient_name' => $request->patient_name,
                 'procedure'    => $request->procedure,
                 'status'       => 'requested',
@@ -145,6 +147,8 @@ class SurgeryRequestController extends Controller
                 'date'         => $date,
                 'start_time'   => $start,
                 'end_time'     => $end,
+                'room_number'  => $request->room_number,
+                'duration_minutes' => $request->duration_minutes,
                 'patient_name' => $request->patient_name,
                 'procedure'    => $request->procedure,
                 'meta'         => array_merge($requestModel->meta ?? [], [

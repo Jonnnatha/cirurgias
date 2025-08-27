@@ -29,6 +29,8 @@ class DocumentTest extends TestCase
             'date' => now()->addDay(),
             'start_time' => '09:00',
             'end_time' => '10:00',
+            'room_number' => 1,
+            'duration_minutes' => 60,
             'patient_name' => 'Patient',
             'procedure' => 'Proc',
             'status' => 'requested',
