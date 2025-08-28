@@ -32,12 +32,15 @@ const days = computed(() => {
         const slots = [];
         for (let h = 8; h < 18; h++) {
             const time = String(h).padStart(2, '0') + ':00';
-            const booked = surgeries.value.some(
-                (s) =>
-                    s.date === dateStr &&
-                    h >= parseInt(s.start_time.slice(0, 2)) &&
-                    h < parseInt(s.end_time.slice(0, 2))
-            );
+            const slotStart = h * 60;
+            const slotEnd = slotStart + 60;
+            const booked = surgeries.value.some((s) => {
+                if (s.date !== dateStr) return false;
+                const [startHour, startMinute] = s.start_time.split(':').map(Number);
+                const surgeryStart = startHour * 60 + startMinute;
+                const surgeryEnd = surgeryStart + s.duration_minutes;
+                return slotStart < surgeryEnd && slotEnd > surgeryStart;
+            });
             slots.push({ time, booked });
         }
         list.push({ date: dateStr, slots });

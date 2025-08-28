@@ -50,7 +50,9 @@ class CalendarTest extends TestCase
 
         $response = $this->actingAs($doctor)->getJson('/calendar?room_number=1&start_date=2025-01-01&end_date=2025-01-31');
 
-        $response->assertStatus(200)->assertJsonCount(1)->assertJsonFragment(['patient_name' => 'A']);
+        $response->assertStatus(200)
+            ->assertJsonCount(1)
+            ->assertJsonFragment(['patient_name' => 'A', 'duration_minutes' => 60]);
     }
 
     public function test_non_doctor_cannot_access_calendar(): void
