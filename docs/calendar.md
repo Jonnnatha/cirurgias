@@ -10,7 +10,57 @@ Parameters:
 - `room_number`: required integer between 1 and 9.
 - `start_date` and `end_date`: required dates (end must be on or after start).
 
-The response is JSON ordered by date and start time and includes the `id`, `date`, `start_time`, `end_time`, `patient_name`, and `procedure` fields.
+The response is JSON ordered by date and start time and includes the `id`, `date`, `start_time`, `end_time`, `patient_name`, and
+ `procedure` fields.
 
 When submitting surgery requests, the same room and date rules are validated and any overlapping schedule—regardless of room—triggers a validation error describing the conflicting room and times.
 
+## Create reservation
+
+```bash
+POST /surgery-requests
+{
+  "date": "2025-01-10",
+  "start_time": "10:00",
+  "end_time": "11:00",
+  "room_number": 1,
+  "duration_minutes": 60,
+  "patient_name": "John Doe",
+  "procedure": "Appendectomy"
+}
+```
+
+**Response**
+```json
+{
+  "ok": "Solicitação criada!"
+}
+```
+
+## Confirm reservation
+
+```bash
+POST /surgery-requests/{id}/approve
+```
+
+**Response**
+```json
+{
+  "ok": "Solicitação aprovada!"
+}
+```
+
+## Cancel reservation
+
+```bash
+DELETE /surgery-requests/{id}
+```
+
+If the user can delete the request, the record is removed; otherwise the status is updated to `cancelled`.
+
+**Response**
+```json
+{
+  "ok": "Solicitação cancelada."
+}
+```
