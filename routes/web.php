@@ -80,20 +80,20 @@ Route::middleware('auth')->group(function () {
             ->name('surgery-requests.indexMy');
 
         // cancelar/remover pedido
-        Route::delete('/surgery-requests/{request}', [SurgeryRequestController::class, 'destroy'])
+        Route::delete('/surgery-requests/{surgeryRequest}', [SurgeryRequestController::class, 'destroy'])
             ->name('surgery-requests.destroy');
     });
 
     // edição/atualização do pedido
     Route::middleware(['role:medico|enfermeiro|admin'])->group(function () {
-        Route::get('/surgery-requests/{request}/edit', [SurgeryRequestController::class, 'edit'])
+        Route::get('/surgery-requests/{surgeryRequest}/edit', [SurgeryRequestController::class, 'edit'])
             ->name('surgery-requests.edit');
-        Route::match(['put', 'patch'], '/surgery-requests/{request}', [SurgeryRequestController::class, 'update'])
+        Route::match(['put', 'patch'], '/surgery-requests/{surgeryRequest}', [SurgeryRequestController::class, 'update'])
             ->name('surgery-requests.update');
 
-        Route::post('/surgery-requests/{request}/documents', [DocumentController::class, 'store'])
+        Route::post('/surgery-requests/{surgeryRequest}/documents', [DocumentController::class, 'store'])
             ->name('surgery-requests.documents.store');
-        Route::delete('/surgery-requests/{request}/documents/{document}', [DocumentController::class, 'destroy'])
+        Route::delete('/surgery-requests/{surgeryRequest}/documents/{document}', [DocumentController::class, 'destroy'])
             ->name('surgery-requests.documents.destroy');
     });
 
@@ -112,13 +112,13 @@ Route::middleware('auth')->group(function () {
             ->name('surgery-requests.index');
 
         // marcar item do checklist (autorização via Policy do pedido pai)
-        Route::put('/surgery-requests/{request}/checklist-items/{item}', [SurgeryRequestController::class, 'updateChecklistItem'])
+        Route::put('/surgery-requests/{surgeryRequest}/checklist-items/{item}', [SurgeryRequestController::class, 'updateChecklistItem'])
             ->name('surgery-requests.checklist-items.update');
 
         // aprovar / reprovar
-        Route::post('/surgery-requests/{request}/approve', [SurgeryRequestController::class, 'approve'])
+        Route::post('/surgery-requests/{surgeryRequest}/approve', [SurgeryRequestController::class, 'approve'])
             ->name('surgery-requests.approve');
-        Route::post('/surgery-requests/{request}/reject', [SurgeryRequestController::class, 'reject'])
+        Route::post('/surgery-requests/{surgeryRequest}/reject', [SurgeryRequestController::class, 'reject'])
             ->name('surgery-requests.reject');
 
         // CRUD de checklists (modelos)

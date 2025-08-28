@@ -87,6 +87,46 @@ class SurgeryRequestTest extends TestCase
         $response->assertDontSee('Bob');
     }
 
+    public function test_nurse_filters_requests_by_room(): void
+    {
+        $doctor = User::factory()->create();
+        $doctor->assignRole('medico');
+        $nurse = User::factory()->create();
+        $nurse->assignRole('enfermeiro');
+
+        SurgeryRequest::create([
+            'doctor_id'        => $doctor->id,
+            'date'             => now()->addDay(),
+            'start_time'       => '08:00',
+            'end_time'         => '09:00',
+            'room_number'      => 1,
+            'duration_minutes' => 60,
+            'patient_name'     => 'Alice',
+            'procedure'        => 'Proc1',
+            'status'           => 'requested',
+            'meta'             => [],
+        ]);
+
+        SurgeryRequest::create([
+            'doctor_id'        => $doctor->id,
+            'date'             => now()->addDay(),
+            'start_time'       => '10:00',
+            'end_time'         => '11:00',
+            'room_number'      => 2,
+            'duration_minutes' => 60,
+            'patient_name'     => 'Bob',
+            'procedure'        => 'Proc2',
+            'status'           => 'requested',
+            'meta'             => [],
+        ]);
+
+        $response = $this->actingAs($nurse)->get('/surgery-requests?room=1');
+
+        $response->assertStatus(200);
+        $response->assertSee('Alice');
+        $response->assertDontSee('Bob');
+    }
+
     public function test_nurse_can_update_checklist_item(): void
     {
         $doctor = User::factory()->create();
