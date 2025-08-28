@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Carbon;
 
 class StoreSurgeryRequestRequest extends FormRequest
 {
@@ -10,6 +11,16 @@ class StoreSurgeryRequestRequest extends FormRequest
     {
         // Policy vai validar depois; aqui pode liberar.
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if (!$this->input('end_time') && $this->input('start_time') && $this->input('duration_minutes')) {
+            $end = Carbon::createFromFormat('H:i', $this->input('start_time'))
+                ->addMinutes((int) $this->input('duration_minutes'))
+                ->format('H:i');
+            $this->merge(['end_time' => $end]);
+        }
     }
 
     public function rules(): array
