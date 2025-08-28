@@ -254,7 +254,7 @@ class SurgeryRequestController extends Controller
 
         $hasItems = $surgeryRequest->checklistItems()->exists();
         if ($hasItems) {
-            $unchecked = $requestModel->checklistItems()->where('checked', false)->count();
+            $unchecked = $surgeryRequest->checklistItems()->where('checked', false)->count();
             if ($unchecked > 0) {
                 throw ValidationException::withMessages([
                     'checklist' => 'Existem itens do checklist ainda não marcados.',
