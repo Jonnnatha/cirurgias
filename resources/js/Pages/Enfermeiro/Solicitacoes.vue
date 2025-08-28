@@ -1,11 +1,24 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
+import { reactive } from 'vue';
 
 const props = defineProps({
     requests: Object,
     filters: Object,
 });
+
+const filterForm = reactive({
+    status: props.filters.status || '',
+    room: props.filters.room || '',
+});
+
+function applyFilters() {
+    router.get(route('surgery-requests.index'), filterForm, {
+        preserveState: true,
+        replace: true,
+    });
+}
 
 function cancel(id) {
     if (confirm('Cancelar esta solicitação?')) {
@@ -24,6 +37,21 @@ function cancel(id) {
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                    <form @submit.prevent="applyFilters" class="mb-4 flex space-x-2">
+                        <input
+                            type="text"
+                            v-model="filterForm.room"
+                            placeholder="Sala"
+                            class="border rounded px-2 py-1"
+                        />
+                        <select v-model="filterForm.status" class="border rounded px-2 py-1">
+                            <option value="">Todos</option>
+                            <option value="requested">Solicitado</option>
+                            <option value="approved">Aprovado</option>
+                            <option value="rejected">Rejeitado</option>
+                        </select>
+                        <button type="submit" class="px-3 py-1 bg-blue-600 text-white rounded">Filtrar</button>
+                    </form>
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead>
                             <tr>
