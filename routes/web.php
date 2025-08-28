@@ -49,7 +49,7 @@ Route::middleware(['auth','verified','role:enfermeiro'])
     ->get('/enfermeiro/dashboard',[DashboardController::class,'enfermeiro'])
     ->name('enfermeiro.dashboard');
 
-Route::middleware(['auth','role:medico|admin'])
+Route::middleware(['auth','role:medico|enfermeiro|admin'])
     ->get('/calendar',[CalendarController::class,'index'])
     ->name('calendar');
 

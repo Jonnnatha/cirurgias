@@ -59,7 +59,16 @@ class CalendarTest extends TestCase
             ]);
     }
 
-    public function test_non_doctor_cannot_access_calendar(): void
+    public function test_nurse_can_access_calendar(): void
+    {
+        $nurse = User::factory()->create();
+        $nurse->assignRole('enfermeiro');
+
+        $response = $this->actingAs($nurse)->get('/calendar');
+        $response->assertStatus(200);
+    }
+
+    public function test_user_without_role_cannot_access_calendar(): void
     {
         $user = User::factory()->create(); // no role
 
