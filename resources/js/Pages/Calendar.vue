@@ -61,17 +61,17 @@ const days = computed(() => {
 });
 
 async function createReservation(date, time) {
-    await axios.post('/calendar/reservations', { date, time });
+    await axios.post('/calendar', { date, time });
     await fetchReservations();
 }
 
 async function confirmReservation(id) {
-    await axios.post(`/calendar/reservations/${id}/confirm`);
+    await axios.post(`/calendar/${id}/confirm`);
     await fetchReservations();
 }
 
 async function cancelReservation(id) {
-    await axios.delete(`/calendar/reservations/${id}`);
+    await axios.delete(`/calendar/${id}`);
     await fetchReservations();
 }
 </script>
