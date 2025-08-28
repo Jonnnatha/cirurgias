@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DayReservation;
 use App\Models\SurgeryRequest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -27,6 +28,35 @@ class CalendarController extends Controller
         }
 
         return Inertia::render('Calendar');
+    }
+
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'date' => ['required', 'date'],
+        ]);
+
+        $reservation = DayReservation::create([
+            'doctor_id' => $request->user()->id,
+            'date' => $data['date'],
+            'status' => 'pending',
+        ]);
+
+        return response()->json($reservation, 201);
+    }
+
+    public function confirm(DayReservation $dayReservation)
+    {
+        $dayReservation->update(['status' => 'confirmed']);
+
+        return response()->json($dayReservation);
+    }
+
+    public function destroy(DayReservation $dayReservation)
+    {
+        $dayReservation->delete();
+
+        return response()->noContent();
     }
 }
 
