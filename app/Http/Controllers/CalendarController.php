@@ -21,7 +21,7 @@ class CalendarController extends Controller
                 ->whereBetween('date', [$data['start_date'], $data['end_date']])
                 ->orderBy('date')
                 ->orderBy('start_time')
-                ->get(['id','date','start_time','end_time','patient_name','procedure']);
+                ->get(['id','date','start_time','end_time','patient_name','procedure','room_number','duration_minutes']);
 
             return response()->json($surgeries);
         }

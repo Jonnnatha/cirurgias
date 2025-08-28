@@ -90,8 +90,9 @@ class SurgeryRequestController extends Controller
                 DB::select('SELECT id FROM surgery_requests WHERE date = ? FOR UPDATE', [$date]);
             }
 
-            // 2) Checagem de sobreposição (global)
+            // 2) Checagem de sobreposição (por sala)
             $conflict = SurgeryRequest::where('date', $date)
+                ->where('room_number', $data['room_number'])
                 ->whereIn('status', ['requested', 'approved'])
                 ->where('start_time', '<', $end)
                 ->where('end_time', '>', $start)
@@ -153,6 +154,7 @@ class SurgeryRequestController extends Controller
 
             $conflict = SurgeryRequest::where('date', $date)
                 ->where('id', '!=', $surgeryRequest->id)
+                ->where('room_number', $data['room_number'])
                 ->whereIn('status', ['requested', 'approved'])
                 ->where('start_time', '<', $end)
                 ->where('end_time', '>', $start)
@@ -230,6 +232,7 @@ class SurgeryRequestController extends Controller
 
             $conflict = SurgeryRequest::where('date', $surgeryRequest->date)
                 ->where('id', '!=', $surgeryRequest->id)
+                ->where('room_number', $surgeryRequest->room_number)
                 ->whereIn('status', ['approved'])
                 ->where('start_time', '<', $surgeryRequest->end_time)
                 ->where('end_time', '>', $surgeryRequest->start_time)
