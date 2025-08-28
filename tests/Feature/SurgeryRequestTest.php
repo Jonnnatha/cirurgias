@@ -45,6 +45,8 @@ class SurgeryRequestTest extends TestCase
             'doctor_id' => $doctor->id,
             'patient_name' => 'John Doe',
             'status' => 'requested',
+            'room_number' => 1,
+            'duration_minutes' => 60,
         ]);
     }
 
@@ -195,6 +197,8 @@ class SurgeryRequestTest extends TestCase
             'id' => $request->id,
             'status' => 'approved',
             'nurse_id' => $nurse->id,
+            'room_number' => 1,
+            'duration_minutes' => 60,
         ]);
     }
 
@@ -225,6 +229,83 @@ class SurgeryRequestTest extends TestCase
         $this->assertEquals('rejected', $request->fresh()->status);
         $this->assertEquals($nurse->id, $request->fresh()->nurse_id);
         $this->assertEquals('No beds', $request->fresh()->meta['reject_reason']);
+        $this->assertEquals(1, $request->fresh()->room_number);
+        $this->assertEquals(60, $request->fresh()->duration_minutes);
+    }
+
+    public function test_allows_overlapping_surgeries_in_different_rooms(): void
+    {
+        $doctor = User::factory()->create();
+        $doctor->assignRole('medico');
+
+        $date = now()->addDay()->toDateString();
+
+        SurgeryRequest::create([
+            'doctor_id' => $doctor->id,
+            'date' => $date,
+            'start_time' => '10:00',
+            'end_time' => '11:00',
+            'room_number' => 1,
+            'duration_minutes' => 60,
+            'patient_name' => 'A',
+            'procedure' => 'Proc',
+            'status' => 'requested',
+            'meta' => [],
+        ]);
+
+        $payload = [
+            'date' => $date,
+            'start_time' => '10:30',
+            'end_time' => '11:30',
+            'duration_minutes' => 60,
+            'room_number' => 2,
+            'patient_name' => 'B',
+            'procedure' => 'Proc',
+        ];
+
+        $response = $this->actingAs($doctor)->postJson('/surgery-requests', $payload);
+
+        $response->assertStatus(302);
+        $this->assertDatabaseHas('surgery_requests', [
+            'patient_name' => 'B',
+            'room_number' => 2,
+        ]);
+    }
+
+    public function test_rejects_overlapping_surgeries_in_same_room(): void
+    {
+        $doctor = User::factory()->create();
+        $doctor->assignRole('medico');
+
+        $date = now()->addDay()->toDateString();
+
+        SurgeryRequest::create([
+            'doctor_id' => $doctor->id,
+            'date' => $date,
+            'start_time' => '10:00',
+            'end_time' => '11:00',
+            'room_number' => 1,
+            'duration_minutes' => 60,
+            'patient_name' => 'A',
+            'procedure' => 'Proc',
+            'status' => 'requested',
+            'meta' => [],
+        ]);
+
+        $payload = [
+            'date' => $date,
+            'start_time' => '10:30',
+            'end_time' => '11:30',
+            'duration_minutes' => 60,
+            'room_number' => 1,
+            'patient_name' => 'B',
+            'procedure' => 'Proc',
+        ];
+
+        $response = $this->actingAs($doctor)->postJson('/surgery-requests', $payload);
+
+        $response->assertStatus(422)->assertJsonValidationErrors('start_time');
+        $this->assertDatabaseCount('surgery_requests', 1);
     }
 
     public function test_cannot_edit_room_or_duration_after_approval(): void
