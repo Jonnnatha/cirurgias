@@ -32,6 +32,8 @@ class CalendarController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorize('create', DayReservation::class);
+
         $data = $request->validate([
             'date' => ['required', 'date'],
         ]);
@@ -47,6 +49,8 @@ class CalendarController extends Controller
 
     public function confirm(DayReservation $dayReservation)
     {
+        $this->authorize('confirm', $dayReservation);
+
         $dayReservation->update(['status' => 'confirmed']);
 
         return response()->json($dayReservation);
@@ -54,6 +58,8 @@ class CalendarController extends Controller
 
     public function destroy(DayReservation $dayReservation)
     {
+        $this->authorize('delete', $dayReservation);
+
         $dayReservation->delete();
 
         return response()->noContent();
