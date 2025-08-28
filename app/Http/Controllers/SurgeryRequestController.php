@@ -23,9 +23,22 @@ class SurgeryRequestController extends Controller
             ->paginate(15);
 
         $data->getCollection()->transform(function ($r) {
-            $r->can_cancel = Auth::user()->can('delete', $r) || Auth::user()->can('update', $r);
-
-            return $r;
+            return array_merge(
+                $r->only([
+                    'id',
+                    'date',
+                    'start_time',
+                    'end_time',
+                    'room_number',
+                    'duration_minutes',
+                    'patient_name',
+                    'procedure',
+                    'status',
+                ]),
+                [
+                    'can_cancel' => Auth::user()->can('delete', $r) || Auth::user()->can('update', $r),
+                ]
+            );
         });
 
         return inertia('Medico/MinhasSolicitacoes', [
@@ -45,9 +58,22 @@ class SurgeryRequestController extends Controller
 
         $requests = $q->paginate(20);
         $requests->getCollection()->transform(function ($r) {
-            $r->can_cancel = Auth::user()->can('delete', $r) || Auth::user()->can('update', $r);
-
-            return $r;
+            return array_merge(
+                $r->only([
+                    'id',
+                    'date',
+                    'start_time',
+                    'end_time',
+                    'room_number',
+                    'duration_minutes',
+                    'patient_name',
+                    'procedure',
+                    'status',
+                ]),
+                [
+                    'can_cancel' => Auth::user()->can('delete', $r) || Auth::user()->can('update', $r),
+                ]
+            );
         });
 
         return inertia('Enfermeiro/Solicitacoes', [
@@ -70,7 +96,18 @@ class SurgeryRequestController extends Controller
         $this->authorize('update', $surgeryRequest);
 
         return inertia('Medico/NovaSolicitacao', [
-            'request' => $surgeryRequest,
+            'request' => $surgeryRequest->only([
+                'id',
+                'date',
+                'start_time',
+                'end_time',
+                'room_number',
+                'duration_minutes',
+                'patient_name',
+                'procedure',
+                'status',
+                'meta',
+            ]),
         ]);
     }
 

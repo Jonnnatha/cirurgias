@@ -9,18 +9,23 @@ import { Head, useForm } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
 const props = defineProps({
-    request: Object,
+    request: {
+        type: Object,
+        default: null,
+    },
 });
 
+const req = props.request ?? {};
+
 const form = useForm({
-    date: props.request?.date ?? '',
-    start_time: props.request?.start_time ?? '',
-    end_time: props.request?.end_time ?? '',
-    duration_minutes: props.request?.duration_minutes ?? '',
-    room_number: props.request?.room_number ?? '',
-    patient_name: props.request?.patient_name ?? '',
-    procedure: props.request?.procedure ?? '',
-    confirm_docs: props.request?.meta?.confirm_docs ?? false,
+    date: req.date ?? '',
+    start_time: req.start_time ?? '',
+    end_time: req.end_time ?? '',
+    duration_minutes: req.duration_minutes ?? '',
+    room_number: req.room_number ?? '',
+    patient_name: req.patient_name ?? '',
+    procedure: req.procedure ?? '',
+    confirm_docs: req.meta?.confirm_docs ?? false,
 });
 
 const isApproved = computed(() => props.request?.status === 'approved');
