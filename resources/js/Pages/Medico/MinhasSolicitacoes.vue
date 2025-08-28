@@ -28,6 +28,8 @@ function cancel(id) {
                             <tr>
                                 <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paciente</th>
                                 <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sala</th>
+                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duração</th>
                                 <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                 <th></th>
                             </tr>
@@ -36,6 +38,8 @@ function cancel(id) {
                             <tr v-for="req in requests.data" :key="req.id" class="border-t">
                                 <td class="px-3 py-2">{{ req.patient_name }}</td>
                                 <td class="px-3 py-2">{{ req.date }}</td>
+                                <td class="px-3 py-2">{{ req.room_number }}</td>
+                                <td class="px-3 py-2">{{ req.duration_minutes }}</td>
                                 <td class="px-3 py-2">{{ req.status }}</td>
                                 <td class="px-3 py-2 text-right">
                                     <button v-if="req.can_cancel" @click="cancel(req.id)" class="text-red-600 hover:underline">Cancelar</button>

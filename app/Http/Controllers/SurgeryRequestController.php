@@ -23,9 +23,15 @@ class SurgeryRequestController extends Controller
             ->paginate(15);
 
         $data->getCollection()->transform(function ($r) {
-            $r->can_cancel = Auth::user()->can('delete', $r) || Auth::user()->can('update', $r);
-
-            return $r;
+            return [
+                'id' => $r->id,
+                'patient_name' => $r->patient_name,
+                'date' => $r->date->toDateString(),
+                'status' => $r->status,
+                'room_number' => $r->room_number,
+                'duration_minutes' => $r->duration_minutes,
+                'can_cancel' => Auth::user()->can('delete', $r) || Auth::user()->can('update', $r),
+            ];
         });
 
         return inertia('Medico/MinhasSolicitacoes', [
@@ -45,9 +51,15 @@ class SurgeryRequestController extends Controller
 
         $requests = $q->paginate(20);
         $requests->getCollection()->transform(function ($r) {
-            $r->can_cancel = Auth::user()->can('delete', $r) || Auth::user()->can('update', $r);
-
-            return $r;
+            return [
+                'id' => $r->id,
+                'patient_name' => $r->patient_name,
+                'date' => $r->date->toDateString(),
+                'status' => $r->status,
+                'room_number' => $r->room_number,
+                'duration_minutes' => $r->duration_minutes,
+                'can_cancel' => Auth::user()->can('delete', $r) || Auth::user()->can('update', $r),
+            ];
         });
 
         return inertia('Enfermeiro/Solicitacoes', [
