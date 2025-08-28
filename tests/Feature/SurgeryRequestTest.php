@@ -10,6 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\PermissionRegistrar;
 use App\Http\Controllers\SurgeryRequestController;
 use Illuminate\Http\Request as HttpRequest;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class SurgeryRequestTest extends TestCase
@@ -48,6 +49,28 @@ class SurgeryRequestTest extends TestCase
             'room_number' => 1,
             'duration_minutes' => 60,
         ]);
+    }
+
+    public function test_end_time_is_calculated_when_missing(): void
+    {
+        $doctor = User::factory()->create();
+        $doctor->assignRole('medico');
+
+        $payload = [
+            'date' => now()->addDay()->toDateString(),
+            'start_time' => '10:00',
+            'duration_minutes' => 90,
+            'room_number' => 1,
+            'patient_name' => 'Jane Doe',
+            'procedure' => 'Appendectomy',
+        ];
+
+        $response = $this->actingAs($doctor)->post('/surgery-requests', $payload);
+
+        $response->assertRedirect();
+        $request = SurgeryRequest::first();
+        $expected = Carbon::createFromFormat('H:i', '10:00')->addMinutes(90)->format('H:i');
+        $this->assertEquals($expected, substr($request->end_time, 0, 5));
     }
 
     public function test_doctor_lists_only_their_requests(): void
