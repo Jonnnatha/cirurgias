@@ -265,4 +265,31 @@ class SurgeryRequestTest extends TestCase
         $this->assertEquals(1, $request->fresh()->room_number);
         $this->assertEquals(60, $request->fresh()->duration_minutes);
     }
+
+    public function test_can_overlap_in_different_rooms(): void
+    {
+        $doctor = User::factory()->create();
+        $doctor->assignRole('medico');
+
+        $date = now()->addDay()->toDateString();
+        $base = [
+            'date' => $date,
+            'start_time' => '10:00',
+            'end_time' => '11:00',
+            'duration_minutes' => 60,
+            'patient_name' => 'John',
+            'procedure' => 'Proc',
+        ];
+
+        $this->actingAs($doctor)->withHeader('Accept', 'text/html')->post('/surgery-requests', array_merge($base, ['room_number' => 1]));
+
+        $response = $this->actingAs($doctor)->withHeader('Accept', 'text/html')->post('/surgery-requests', array_merge($base, [
+            'room_number' => 2,
+            'start_time' => '10:30',
+            'end_time' => '11:30',
+        ]));
+
+        $response->assertSessionDoesntHaveErrors();
+        $this->assertDatabaseCount('surgery_requests', 2);
+    }
 }

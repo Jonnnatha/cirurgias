@@ -8,6 +8,7 @@ use App\Models\SurgeryRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 use Illuminate\Validation\ValidationException;
 
 class SurgeryRequestController extends Controller
@@ -80,21 +81,22 @@ class SurgeryRequestController extends Controller
         $this->authorize('create', SurgeryRequest::class);
         $data = $request->validated();
         $date = $data['date'];
-        $start = $data['start_time'];
-        $end = $data['end_time'];
+        $start = Carbon::createFromFormat('H:i', $data['start_time'])->format('H:i:s');
+        $end = Carbon::createFromFormat('H:i', $data['end_time'])->format('H:i:s');
+        $room = $data['room_number'];
 
-        return DB::transaction(function () use ($date, $start, $end, $data) {
+        return DB::transaction(function () use ($date, $start, $end, $room, $data) {
 
-            // 1) LOCK por dia (anti-corrida)
+            // 1) LOCK por sala e dia (anti-corrida)
             if (DB::connection()->getDriverName() !== 'sqlite') {
-                DB::select('SELECT id FROM surgery_requests WHERE date = ? FOR UPDATE', [$date]);
+                DB::select('SELECT id FROM surgery_requests WHERE date = ? AND room_number = ? FOR UPDATE', [$date, $room]);
             }
 
-            // 2) Checagem de sobreposição (global)
+            // 2) Checagem de sobreposição na mesma sala
             $conflict = SurgeryRequest::where('date', $date)
+                ->where('room_number', $room)
                 ->whereIn('status', ['requested', 'approved'])
-                ->where('start_time', '<', $end)
-                ->where('end_time', '>', $start)
+                ->whereRaw('? < end_time AND ? > start_time', [$start, $end])
                 ->first();
 
             if ($conflict) {
@@ -141,21 +143,22 @@ class SurgeryRequestController extends Controller
         ]]);
 
         $date = $data['date'];
-        $start = $data['start_time'];
-        $end = $data['end_time'];
+        $start = Carbon::createFromFormat('H:i', $data['start_time'])->format('H:i:s');
+        $end = Carbon::createFromFormat('H:i', $data['end_time'])->format('H:i:s');
+        $room = $data['room_number'];
 
-        return DB::transaction(function () use ($date, $start, $end, $data, $surgeryRequest) {
+        return DB::transaction(function () use ($date, $start, $end, $room, $data, $surgeryRequest) {
 
-            // LOCK por dia para evitar corrida
+            // LOCK por sala e dia para evitar corrida
             if (DB::connection()->getDriverName() !== 'sqlite') {
-                DB::select('SELECT id FROM surgery_requests WHERE date = ? FOR UPDATE', [$date]);
+                DB::select('SELECT id FROM surgery_requests WHERE date = ? AND room_number = ? FOR UPDATE', [$date, $room]);
             }
 
             $conflict = SurgeryRequest::where('date', $date)
+                ->where('room_number', $room)
                 ->where('id', '!=', $surgeryRequest->id)
                 ->whereIn('status', ['requested', 'approved'])
-                ->where('start_time', '<', $end)
-                ->where('end_time', '>', $start)
+                ->whereRaw('? < end_time AND ? > start_time', [$start, $end])
                 ->first();
 
             if ($conflict) {
@@ -225,14 +228,14 @@ class SurgeryRequestController extends Controller
 
         return DB::transaction(function () use ($surgeryRequest) {
             if (DB::connection()->getDriverName() !== 'sqlite') {
-                DB::select('SELECT id FROM surgery_requests WHERE date = ? FOR UPDATE', [$surgeryRequest->date]);
+                DB::select('SELECT id FROM surgery_requests WHERE date = ? AND room_number = ? FOR UPDATE', [$surgeryRequest->date, $surgeryRequest->room_number]);
             }
 
             $conflict = SurgeryRequest::where('date', $surgeryRequest->date)
+                ->where('room_number', $surgeryRequest->room_number)
                 ->where('id', '!=', $surgeryRequest->id)
                 ->whereIn('status', ['approved'])
-                ->where('start_time', '<', $surgeryRequest->end_time)
-                ->where('end_time', '>', $surgeryRequest->start_time)
+                ->whereRaw('? < end_time AND ? > start_time', [$surgeryRequest->start_time, $surgeryRequest->end_time])
                 ->first();
 
             if ($conflict) {
