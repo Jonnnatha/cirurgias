@@ -36,6 +36,32 @@ This command creates an admin user with:
 
 Use these credentials to log in.
 
+## Room-Based Scheduling
+
+Surgery requests now require a **room number** indicating where the procedure will take place.
+Rooms are numbered from 1 to 9 and the selected room is stored with each request.
+
+### Validation rules
+
+When creating or updating a surgery request the following rules apply:
+
+- `room_number` must be an integer between 1 and 9.
+- `duration_minutes` must be a positive integer.
+- `date` cannot be in the past and `end_time` must be after `start_time`.
+
+If an existing surgery overlaps the same time range (even in a different room) the request is
+rejected with a validation error mentioning the conflicting room and times.
+
+### Querying the calendar by room
+
+Doctors and admins can fetch the schedule for a specific room via the calendar endpoint:
+
+```bash
+GET /calendar?room_number=2&start_date=2025-01-01&end_date=2025-01-31
+```
+
+The endpoint returns the surgeries scheduled for that room and date range as JSON.
+
 ## Learning Laravel
 
 Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
