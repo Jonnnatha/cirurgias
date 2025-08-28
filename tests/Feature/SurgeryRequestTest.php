@@ -256,7 +256,7 @@ class SurgeryRequestTest extends TestCase
         $this->assertEquals(60, $request->fresh()->duration_minutes);
     }
 
-    public function test_allows_overlapping_surgeries_in_different_rooms(): void
+    public function test_rejects_overlapping_surgeries_on_create_even_in_different_rooms(): void
     {
         $doctor = User::factory()->create();
         $doctor->assignRole('medico');
@@ -286,23 +286,21 @@ class SurgeryRequestTest extends TestCase
             'procedure' => 'Proc',
         ];
 
-        $response = $this->actingAs($doctor)->postJson('/surgery-requests', $payload);
+        $response = $this->actingAs($doctor)->post('/surgery-requests', $payload);
 
-        $response->assertStatus(302);
-        $this->assertDatabaseHas('surgery_requests', [
-            'patient_name' => 'B',
-            'room_number' => 2,
-        ]);
+        $response->assertSessionHasErrors('start_time');
+        $this->assertStringContainsString('sala 1', session('errors')->first('start_time'));
+        $this->assertDatabaseCount('surgery_requests', 1);
     }
 
-    public function test_rejects_overlapping_surgeries_in_same_room(): void
+    public function test_rejects_overlapping_surgeries_on_update_even_in_different_rooms(): void
     {
         $doctor = User::factory()->create();
         $doctor->assignRole('medico');
 
         $date = now()->addDay()->toDateString();
 
-        SurgeryRequest::create([
+        $first = SurgeryRequest::create([
             'doctor_id' => $doctor->id,
             'date' => $date,
             'start_time' => '10:00',
@@ -315,20 +313,77 @@ class SurgeryRequestTest extends TestCase
             'meta' => [],
         ]);
 
+        $second = SurgeryRequest::create([
+            'doctor_id' => $doctor->id,
+            'date' => $date,
+            'start_time' => '12:00',
+            'end_time' => '13:00',
+            'room_number' => 2,
+            'duration_minutes' => 60,
+            'patient_name' => 'B',
+            'procedure' => 'Proc',
+            'status' => 'requested',
+            'meta' => [],
+        ]);
+
         $payload = [
             'date' => $date,
             'start_time' => '10:30',
             'end_time' => '11:30',
             'duration_minutes' => 60,
-            'room_number' => 1,
+            'room_number' => 2,
             'patient_name' => 'B',
             'procedure' => 'Proc',
         ];
 
-        $response = $this->actingAs($doctor)->postJson('/surgery-requests', $payload);
+        $response = $this->actingAs($doctor)->put("/surgery-requests/{$second->id}", $payload);
 
-        $response->assertStatus(422)->assertJsonValidationErrors('start_time');
-        $this->assertDatabaseCount('surgery_requests', 1);
+        $response->assertSessionHasErrors('start_time');
+        $this->assertStringContainsString('sala 1', session('errors')->first('start_time'));
+        $this->assertEquals('12:00:00', $second->fresh()->start_time);
+    }
+
+    public function test_rejects_overlapping_surgeries_on_approve_even_in_different_rooms(): void
+    {
+        $doctor = User::factory()->create();
+        $doctor->assignRole('medico');
+        $nurse = User::factory()->create();
+        $nurse->assignRole('enfermeiro');
+
+        $date = now()->addDay()->toDateString();
+
+        $approved = SurgeryRequest::create([
+            'doctor_id' => $doctor->id,
+            'date' => $date,
+            'start_time' => '10:00',
+            'end_time' => '11:00',
+            'room_number' => 1,
+            'duration_minutes' => 60,
+            'patient_name' => 'A',
+            'procedure' => 'Proc',
+            'status' => 'approved',
+            'nurse_id' => $nurse->id,
+            'meta' => [],
+        ]);
+
+        $pending = SurgeryRequest::create([
+            'doctor_id' => $doctor->id,
+            'date' => $date,
+            'start_time' => '10:30',
+            'end_time' => '11:30',
+            'room_number' => 2,
+            'duration_minutes' => 60,
+            'patient_name' => 'B',
+            'procedure' => 'Proc',
+            'status' => 'requested',
+            'meta' => [],
+        ]);
+
+        $response = $this->actingAs($nurse)->post("/surgery-requests/{$pending->id}/approve");
+
+        $response->assertSessionHasErrors('approve');
+        $this->assertStringContainsString('sala 1', session('errors')->first('approve'));
+        $this->assertEquals('requested', $pending->fresh()->status);
     }
 
     public function test_cannot_edit_room_or_duration_after_approval(): void
