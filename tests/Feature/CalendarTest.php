@@ -56,6 +56,7 @@ class CalendarTest extends TestCase
                 'patient_name' => 'A',
                 'room_number' => 1,
                 'duration_minutes' => 60,
+                'status' => 'approved',
             ]);
     }
 
