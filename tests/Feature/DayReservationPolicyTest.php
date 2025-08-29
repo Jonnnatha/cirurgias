@@ -35,6 +35,24 @@ class DayReservationPolicyTest extends TestCase
         ]);
     }
 
+    public function test_second_reservation_on_same_day_is_blocked(): void
+    {
+        $doctor1 = User::factory()->create();
+        $doctor1->assignRole('medico');
+
+        $date = now()->addDay()->toDateString();
+
+        $this->actingAs($doctor1)->postJson('/calendar', ['date' => $date])
+            ->assertStatus(201);
+
+        $doctor2 = User::factory()->create();
+        $doctor2->assignRole('medico');
+
+        $response = $this->actingAs($doctor2)->postJson('/calendar', ['date' => $date]);
+
+        $response->assertStatus(422)->assertJsonValidationErrors('date');
+    }
+
     public function test_nurse_cannot_create_day_reservation(): void
     {
         $nurse = User::factory()->create();
