@@ -141,7 +141,7 @@ class DayReservationPolicyTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_admin_cannot_delete_day_reservation(): void
+    public function test_admin_can_delete_day_reservation(): void
     {
         $doctor = User::factory()->create();
         $doctor->assignRole('medico');
@@ -155,7 +155,11 @@ class DayReservationPolicyTest extends TestCase
         ]);
 
         $this->actingAs($admin)->deleteJson("/calendar/{$reservation->id}")
-            ->assertForbidden();
+            ->assertNoContent();
+
+        $this->assertDatabaseMissing('day_reservations', [
+            'id' => $reservation->id,
+        ]);
     }
 }
 
