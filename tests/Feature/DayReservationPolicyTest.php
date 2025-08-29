@@ -35,6 +35,27 @@ class DayReservationPolicyTest extends TestCase
         ]);
     }
 
+    public function test_cannot_create_reservation_on_occupied_day(): void
+    {
+        $doctor1 = User::factory()->create();
+        $doctor1->assignRole('medico');
+
+        DayReservation::create([
+            'doctor_id' => $doctor1->id,
+            'date' => now()->addDay()->toDateString(),
+            'status' => 'pending',
+        ]);
+
+        $doctor2 = User::factory()->create();
+        $doctor2->assignRole('medico');
+
+        $payload = ['date' => now()->addDay()->toDateString()];
+
+        $this->actingAs($doctor2)->postJson('/calendar', $payload)
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('date');
+    }
+
     public function test_nurse_cannot_create_day_reservation(): void
     {
         $nurse = User::factory()->create();

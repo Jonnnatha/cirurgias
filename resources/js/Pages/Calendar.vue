@@ -7,8 +7,7 @@ import axios from 'axios';
 // TODO: considerar substituição desta implementação por uma biblioteca como
 // FullCalendar para melhorar a aparência e responsividade do calendário.
 
-const roomNumber = ref(1);
-const today = new Date().toISOString().slice(0,10);
+const today = new Date().toISOString().slice(0, 10);
 const startDate = ref(today);
 const endDate = ref(today);
 const reservations = ref([]);
@@ -28,7 +27,6 @@ const canCancel = (reservation) => {
 async function fetchReservations() {
     const { data } = await axios.get('/calendar', {
         params: {
-            room_number: roomNumber.value,
             start_date: startDate.value,
             end_date: endDate.value,
         },
@@ -36,7 +34,7 @@ async function fetchReservations() {
     reservations.value = data;
 }
 
-watch([roomNumber, startDate, endDate], fetchReservations, { immediate: true });
+watch([startDate, endDate], fetchReservations, { immediate: true });
 
 const days = computed(() => {
     const start = new Date(startDate.value);
@@ -44,24 +42,14 @@ const days = computed(() => {
     const list = [];
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
         const dateStr = d.toISOString().slice(0, 10);
-        const slots = [];
-        for (let h = 8; h < 18; h++) {
-            const time = String(h).padStart(2, '0') + ':00';
-            const reservation = reservations.value.find(
-                (r) =>
-                    r.date === dateStr &&
-                    h >= parseInt(r.start_time.slice(0, 2)) &&
-                    h < parseInt(r.end_time.slice(0, 2))
-            );
-            slots.push({ time, reservation });
-        }
-        list.push({ date: dateStr, slots });
+        const reservation = reservations.value.find((r) => r.date === dateStr);
+        list.push({ date: dateStr, reservation });
     }
     return list;
 });
 
-async function createReservation(date, time) {
-    await axios.post('/calendar', { date, time });
+async function createReservation(date) {
+    await axios.post('/calendar', { date });
     await fetchReservations();
 }
 
@@ -88,12 +76,6 @@ async function cancelReservation(id) {
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 text-gray-900">
                     <div class="mb-4 flex gap-4">
                         <div>
-                            <label class="block text-sm font-medium">Sala</label>
-                            <select v-model.number="roomNumber" class="border rounded p-1">
-                                <option v-for="n in 9" :key="n" :value="n">{{ n }}</option>
-                            </select>
-                        </div>
-                        <div>
                             <label class="block text-sm font-medium">Início</label>
                             <input type="date" v-model="startDate" class="border rounded p-1" />
                         </div>
@@ -103,37 +85,34 @@ async function cancelReservation(id) {
                         </div>
                     </div>
 
-                    <div v-for="day in days" :key="day.date" class="mb-6">
-                        <h3 class="font-semibold mb-2">{{ day.date }}</h3>
-                        <div class="grid grid-cols-10 gap-2">
-                            <div
-                                v-for="slot in day.slots"
-                                :key="slot.time"
-                                class="p-2 text-center text-xs rounded"
-                                :class="[
-                                    !slot.reservation && 'bg-green-200 cursor-pointer',
-                                    slot.reservation?.status === 'pending' && 'bg-orange-400 text-white',
-                                    slot.reservation?.status === 'confirmed' && 'bg-red-500 text-white',
-                                ]"
-                                @click="!slot.reservation && createReservation(day.date, slot.time)"
-                            >
-                                <div>{{ slot.time }}</div>
-                                <div v-if="slot.reservation" class="mt-1 flex flex-col gap-1">
-                                    <button
-                                        v-if="slot.reservation.status === 'pending' && hasRole('enfermeiro')"
-                                        class="bg-blue-500 text-white px-1 py-0.5 rounded text-[10px]"
-                                        @click.stop="confirmReservation(slot.reservation.id)"
-                                    >
-                                        Confirmar
-                                    </button>
-                                    <button
-                                        v-if="canCancel(slot.reservation)"
-                                        class="bg-gray-500 text-white px-1 py-0.5 rounded text-[10px]"
-                                        @click.stop="cancelReservation(slot.reservation.id)"
-                                    >
-                                        Desmarcar
-                                    </button>
-                                </div>
+                    <div class="grid grid-cols-7 gap-2">
+                        <div
+                            v-for="day in days"
+                            :key="day.date"
+                            class="p-4 text-center rounded"
+                            :class="[
+                                !day.reservation && 'bg-green-200 cursor-pointer',
+                                day.reservation?.status === 'pending' && 'bg-orange-400 text-white',
+                                day.reservation?.status === 'confirmed' && 'bg-red-500 text-white',
+                            ]"
+                            @click="!day.reservation && createReservation(day.date)"
+                        >
+                            <div class="font-semibold">{{ day.date }}</div>
+                            <div v-if="day.reservation" class="mt-2 flex flex-col gap-1">
+                                <button
+                                    v-if="day.reservation.status === 'pending' && hasRole('enfermeiro')"
+                                    class="bg-blue-500 text-white px-1 py-0.5 rounded text-[10px]"
+                                    @click.stop="confirmReservation(day.reservation.id)"
+                                >
+                                    Confirmar
+                                </button>
+                                <button
+                                    v-if="canCancel(day.reservation)"
+                                    class="bg-gray-500 text-white px-1 py-0.5 rounded text-[10px]"
+                                    @click.stop="cancelReservation(day.reservation.id)"
+                                >
+                                    Desmarcar
+                                </button>
                             </div>
                         </div>
                     </div>
