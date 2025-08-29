@@ -18,7 +18,7 @@ return new class extends Migration
             $table->enum('status', ['pending', 'confirmed'])->default('pending');
             $table->timestamps();
 
-            $table->unique(['doctor_id', 'date']);
+            $table->unique('date');
         });
     }
 

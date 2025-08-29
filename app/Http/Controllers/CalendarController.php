@@ -45,7 +45,7 @@ class CalendarController extends Controller
         $this->authorize('create', DayReservation::class);
 
         $data = $request->validate([
-            'date' => ['required', 'date'],
+            'date' => ['required', 'date', 'unique:day_reservations,date'],
         ]);
 
         $reservation = DayReservation::create([
