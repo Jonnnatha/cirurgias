@@ -19,7 +19,9 @@ class DayReservationPolicy
 
     public function delete(User $user, DayReservation $reservation): bool
     {
-        return $user->hasRole('medico') && $reservation->doctor_id === $user->id;
+        return $user->hasRole('admin') || (
+            $user->hasRole('medico') && $reservation->doctor_id === $user->id
+        );
     }
 }
 
