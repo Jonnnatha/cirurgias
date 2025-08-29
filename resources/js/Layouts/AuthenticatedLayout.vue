@@ -13,6 +13,12 @@ const isAdmin = computed(() => {
     const user = usePage().props.auth.user;
     return user.roles ? user.roles.some((role) => role.name === 'admin') : user.hierarquia === 'admin';
 });
+
+const hasCalendarAccess = computed(() => {
+    const user = usePage().props.auth.user;
+    const roles = user.roles ? user.roles.map((role) => role.name) : [user.hierarquia];
+    return ['admin', 'medico', 'enfermeiro'].some((role) => roles.includes(role));
+});
 </script>
 
 <template>
@@ -37,7 +43,11 @@ const isAdmin = computed(() => {
                                 <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
                                     Dashboard
                                 </NavLink>
-                                <NavLink :href="route('calendar')" :active="route().current('calendar')">
+                                <NavLink
+                                    v-if="hasCalendarAccess"
+                                    :href="route('calendar')"
+                                    :active="route().current('calendar')"
+                                >
                                     Calendário
                                 </NavLink>
                                 <Dropdown v-if="isAdmin" align="left" width="48">
@@ -158,7 +168,11 @@ const isAdmin = computed(() => {
                         <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')">
                             Dashboard
                         </ResponsiveNavLink>
-                        <ResponsiveNavLink :href="route('calendar')" :active="route().current('calendar')">
+                        <ResponsiveNavLink
+                            v-if="hasCalendarAccess"
+                            :href="route('calendar')"
+                            :active="route().current('calendar')"
+                        >
                             Calendário
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
