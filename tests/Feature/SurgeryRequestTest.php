@@ -293,6 +293,52 @@ class SurgeryRequestTest extends TestCase
         $this->assertDatabaseCount('surgery_requests', 1);
     }
 
+    public function test_allows_overlapping_requests_in_different_rooms(): void
+    {
+        $doctor1 = User::factory()->create();
+        $doctor1->assignRole('medico');
+        $doctor2 = User::factory()->create();
+        $doctor2->assignRole('medico');
+
+        $date = now()->addDay()->toDateString();
+
+        SurgeryRequest::create([
+            'doctor_id' => $doctor1->id,
+            'date' => $date,
+            'start_time' => '10:00',
+            'end_time' => '11:00',
+            'room_number' => 1,
+            'duration_minutes' => 60,
+            'patient_name' => 'A',
+            'procedure' => 'Proc',
+            'status' => 'requested',
+            'meta' => [],
+        ]);
+
+        $payload = [
+            'date' => $date,
+            'start_time' => '10:30',
+            'end_time' => '11:30',
+            'duration_minutes' => 60,
+            'room_number' => 1,
+            'patient_name' => 'B',
+            'procedure' => 'Proc',
+        ];
+
+        $response = $this->actingAs($doctor2)->post('/surgery-requests', $payload);
+
+        $response->assertSessionHasErrors('start_time');
+        $this->assertStringContainsString('sala 1', session('errors')->first('start_time'));
+        $this->assertDatabaseCount('surgery_requests', 1);
+
+        // Try again in another room
+        $payload['room_number'] = 2;
+        $response = $this->actingAs($doctor2)->post('/surgery-requests', $payload);
+
+        $response->assertRedirect();
+        $this->assertDatabaseCount('surgery_requests', 2);
+    }
+
     public function test_rejects_overlapping_surgeries_on_update_even_in_different_rooms(): void
     {
         $doctor = User::factory()->create();
@@ -340,7 +386,7 @@ class SurgeryRequestTest extends TestCase
 
         $response->assertSessionHasErrors('start_time');
         $this->assertStringContainsString('sala 1', session('errors')->first('start_time'));
-        $this->assertEquals('12:00:00', $second->fresh()->start_time);
+        $this->assertEquals('12:00', substr($second->fresh()->start_time, 0, 5));
     }
 
     public function test_rejects_overlapping_surgeries_on_approve_even_in_different_rooms(): void
