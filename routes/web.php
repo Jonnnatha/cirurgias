@@ -52,7 +52,6 @@ Route::middleware(['auth','verified','role:enfermeiro'])
 Route::middleware(['auth','role:medico|enfermeiro|admin'])->group(function () {
     Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar');
     Route::post('/calendar', [CalendarController::class, 'store'])->name('day-reservations.store');
-    Route::post('/calendar/{dayReservation}/confirm', [CalendarController::class, 'confirm'])->name('day-reservations.confirm');
     Route::delete('/calendar/{dayReservation}', [CalendarController::class, 'destroy'])->name('day-reservations.destroy');
 });
 

@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('doctor_id')->constrained('users')->cascadeOnDelete();
             $table->date('date')->index();
-            $table->enum('status', ['pending', 'confirmed'])->default('pending');
             $table->timestamps();
 
             $table->unique('date');
