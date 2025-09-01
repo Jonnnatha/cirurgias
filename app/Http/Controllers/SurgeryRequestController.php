@@ -127,22 +127,13 @@ class SurgeryRequestController extends Controller
                 DB::select('SELECT id FROM surgery_requests WHERE date = ? FOR UPDATE', [$date]);
             }
 
-            // 2) Checagem de sobreposição (mesma sala ou mesmo médico)
+            // 2) Checagem de sobreposição (mesma sala)
             $conflict = SurgeryRequest::whereDate('date', $date)
                 ->whereIn('status', ['requested', 'approved'])
                 ->where('start_time', '<', $end)
                 ->where('end_time', '>', $start)
                 ->where('room_number', $data['room_number'])
                 ->first();
-
-            if (!$conflict) {
-                $conflict = SurgeryRequest::whereDate('date', $date)
-                    ->whereIn('status', ['requested', 'approved'])
-                    ->where('start_time', '<', $end)
-                    ->where('end_time', '>', $start)
-                    ->where('doctor_id', Auth::id())
-                    ->first();
-            }
 
             if ($conflict) {
                 $msg = sprintf(
@@ -205,16 +196,6 @@ class SurgeryRequestController extends Controller
                 ->where('end_time', '>', $start)
                 ->where('room_number', $data['room_number'])
                 ->first();
-
-            if (!$conflict) {
-                $conflict = SurgeryRequest::whereDate('date', $date)
-                    ->where('id', '!=', $surgeryRequest->id)
-                    ->whereIn('status', ['requested', 'approved'])
-                    ->where('start_time', '<', $end)
-                    ->where('end_time', '>', $start)
-                    ->where('doctor_id', $surgeryRequest->doctor_id)
-                    ->first();
-            }
 
             if ($conflict) {
                 $msg = sprintf(
@@ -293,16 +274,6 @@ class SurgeryRequestController extends Controller
                 ->where('end_time', '>', $surgeryRequest->start_time)
                 ->where('room_number', $surgeryRequest->room_number)
                 ->first();
-
-            if (!$conflict) {
-                $conflict = SurgeryRequest::whereDate('date', $surgeryRequest->date)
-                    ->where('id', '!=', $surgeryRequest->id)
-                    ->whereIn('status', ['approved'])
-                    ->where('start_time', '<', $surgeryRequest->end_time)
-                    ->where('end_time', '>', $surgeryRequest->start_time)
-                    ->where('doctor_id', $surgeryRequest->doctor_id)
-                    ->first();
-            }
 
             if ($conflict) {
                 $msg = sprintf(
