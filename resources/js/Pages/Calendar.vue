@@ -8,6 +8,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 
 const reservations = ref([]);
+const roomNumber = ref(1);
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
@@ -22,7 +23,22 @@ const canCancel = (reservation) => {
 };
 
 async function fetchReservations() {
-    const { data } = await axios.get('/calendar');
+    const today = new Date();
+    const start = new Date(today.getFullYear(), today.getMonth(), 1)
+        .toISOString()
+        .slice(0, 10);
+    const end = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+        .toISOString()
+        .slice(0, 10);
+
+    const { data } = await axios.get('/calendar', {
+        params: {
+            room_number: roomNumber.value,
+            start_date: start,
+            end_date: end,
+        },
+    });
+
     reservations.value = data;
 }
 
