@@ -1,107 +1,55 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Cirurgias
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistema Laravel para gerenciar solicitações de cirurgias com agendamento por sala, checklists e uma API de calendário.
 
-## About Laravel
+## Requisitos
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- PHP 8.1+
+- Node.js 18+
+- Banco de dados MySQL ou compatível
+- Composer e npm
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Default Login
-
-Run the database migrations and seeders to create default credentials:
+## Instalação
 
 ```bash
+cp .env.example .env
+composer install
+npm install
+php artisan key:generate
 php artisan migrate --seed
 ```
 
-This command creates an admin user with:
+## Desenvolvimento
+
+Execute o backend e o frontend em terminais separados:
+
+```bash
+php artisan serve        # http://localhost:8000
+npm run dev              # compila os assets com Vite
+```
+
+## Testes
+
+```bash
+php artisan test
+```
+
+## Recursos
+
+- **Agendamento por sala**: cada solicitação registra um número de sala (1–9) com validação para evitar sobreposições de horário.
+- **Checklists**: administradores e enfermeiros gerenciam modelos de checklist e marcam itens para cada cirurgia.
+- **API de calendário**: consulte cirurgias por sala e intervalo de datas; veja [docs/calendar.md](docs/calendar.md).
+
+## Login padrão
+
+Após `php artisan migrate --seed` um usuário admin é criado:
 
 - `nome`: Admin
 - `password`: 123
 
-Use these credentials to log in.
+## Solução de problemas
 
-## Room-Based Scheduling
+- Garanta que as versões de PHP e Node atendam aos requisitos.
+- Verifique as credenciais do banco no `.env` antes de rodar as migrações.
+- Para mais detalhes do framework consulte a [documentação do Laravel](https://laravel.com/docs).
 
-Surgery requests now require a **room number** indicating where the procedure will take place.
-Rooms are numbered from 1 to 9 and the selected room is stored with each request.
-
-### Validation rules
-
-When creating or updating a surgery request the following rules apply:
-
-- `room_number` must be an integer between 1 and 9.
-- `duration_minutes` must be a positive integer.
-- `date` cannot be in the past and `end_time` must be after `start_time`.
-
-If an existing surgery overlaps the same time range (even in a different room) the request is
-rejected with a validation error mentioning the conflicting room and times.
-
-### Querying the calendar by room
-
-Doctors and admins can fetch the schedule for a specific room via the calendar endpoint:
-
-```bash
-GET /calendar?room_number=2&start_date=2025-01-01&end_date=2025-01-31
-```
-
-The endpoint returns the surgeries scheduled for that room and date range as JSON.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
-
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
