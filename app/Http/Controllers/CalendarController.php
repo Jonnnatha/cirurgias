@@ -59,8 +59,6 @@ class CalendarController extends Controller
 
     public function confirm(DayReservation $dayReservation)
     {
-        $this->authorize('confirm', $dayReservation);
-
         $dayReservation->update(['status' => 'confirmed']);
 
         return response()->json($dayReservation);
