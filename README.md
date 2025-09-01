@@ -40,6 +40,7 @@ Use these credentials to log in.
 
 Surgery requests now require a **room number** indicating where the procedure will take place.
 Rooms are numbered from 1 to 9 and the selected room is stored with each request.
+Reservations are confirmed immediately upon creation; no separate confirmation step is required.
 
 ### Validation rules
 

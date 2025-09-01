@@ -36,19 +36,7 @@ POST /surgery-requests
   "ok": "Solicitação criada!"
 }
 ```
-
-## Confirm reservation
-
-```bash
-POST /surgery-requests/{id}/approve
-```
-
-**Response**
-```json
-{
-  "ok": "Solicitação aprovada!"
-}
-```
+Reservations are confirmed immediately upon creation; no additional confirmation step is required.
 
 ## Cancel reservation
 

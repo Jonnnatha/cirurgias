@@ -31,11 +31,11 @@ onMounted(fetchReservations);
 const events = computed(() =>
     reservations.value.map((r) => ({
         id: r.id,
-        title: r.status === 'pending' ? 'Pendente' : 'Confirmado',
+        title: 'Confirmado',
         start: r.date,
         allDay: true,
-        backgroundColor: r.status === 'pending' ? '#f97316' : '#ef4444',
-        borderColor: r.status === 'pending' ? '#f97316' : '#ef4444',
+        backgroundColor: '#ef4444',
+        borderColor: '#ef4444',
         extendedProps: { reservation: r },
     }))
 );
@@ -48,13 +48,6 @@ async function handleDateSelect(selectionInfo) {
 
 async function handleEventClick(clickInfo) {
     const reservation = clickInfo.event.extendedProps.reservation;
-    if (reservation.status === 'pending' && hasRole('enfermeiro')) {
-        if (confirm('Confirmar reserva?')) {
-            await axios.post(`/calendar/${reservation.id}/confirm`);
-            await fetchReservations();
-        }
-        return;
-    }
     if (canCancel(reservation)) {
         if (confirm('Cancelar reserva?')) {
             await axios.delete(`/calendar/${reservation.id}`);
