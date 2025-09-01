@@ -22,8 +22,12 @@ const canCancel = (reservation) => {
 };
 
 async function fetchReservations() {
-    const { data } = await axios.get('/calendar');
-    reservations.value = data;
+    try {
+        const { data } = await axios.get('/calendar');
+        reservations.value = data;
+    } catch (error) {
+        console.error('Failed to fetch reservations', error);
+    }
 }
 
 onMounted(fetchReservations);
@@ -42,16 +46,24 @@ const events = computed(() =>
 
 async function handleDateSelect(selectionInfo) {
     if (!hasRole('medico')) return;
-    await axios.post('/calendar', { date: selectionInfo.startStr });
-    await fetchReservations();
+    try {
+        await axios.post('/calendar', { date: selectionInfo.startStr });
+        await fetchReservations();
+    } catch (error) {
+        console.error('Failed to create reservation', error);
+    }
 }
 
 async function handleEventClick(clickInfo) {
     const reservation = clickInfo.event.extendedProps.reservation;
     if (canCancel(reservation)) {
         if (confirm('Cancelar reserva?')) {
-            await axios.delete(`/calendar/${reservation.id}`);
-            await fetchReservations();
+            try {
+                await axios.delete(`/calendar/${reservation.id}`);
+                await fetchReservations();
+            } catch (error) {
+                console.error('Failed to delete reservation', error);
+            }
         }
     }
 }
