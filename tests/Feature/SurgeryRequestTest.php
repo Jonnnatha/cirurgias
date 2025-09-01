@@ -256,7 +256,7 @@ class SurgeryRequestTest extends TestCase
         $this->assertEquals(60, $request->fresh()->duration_minutes);
     }
 
-    public function test_rejects_overlapping_surgeries_on_create_even_in_different_rooms(): void
+    public function test_allows_overlapping_surgeries_on_create_in_different_rooms(): void
     {
         $doctor = User::factory()->create();
         $doctor->assignRole('medico');
@@ -288,12 +288,11 @@ class SurgeryRequestTest extends TestCase
 
         $response = $this->actingAs($doctor)->post('/surgery-requests', $payload);
 
-        $response->assertSessionHasErrors('start_time');
-        $this->assertStringContainsString('sala 1', session('errors')->first('start_time'));
-        $this->assertDatabaseCount('surgery_requests', 1);
+        $response->assertRedirect();
+        $this->assertDatabaseCount('surgery_requests', 2);
     }
 
-    public function test_rejects_overlapping_surgeries_on_update_even_in_different_rooms(): void
+    public function test_allows_overlapping_surgeries_on_update_in_different_rooms(): void
     {
         $doctor = User::factory()->create();
         $doctor->assignRole('medico');
@@ -338,12 +337,11 @@ class SurgeryRequestTest extends TestCase
 
         $response = $this->actingAs($doctor)->put("/surgery-requests/{$second->id}", $payload);
 
-        $response->assertSessionHasErrors('start_time');
-        $this->assertStringContainsString('sala 1', session('errors')->first('start_time'));
-        $this->assertEquals('12:00:00', $second->fresh()->start_time);
+        $response->assertRedirect();
+        $this->assertEquals('10:30', substr($second->fresh()->start_time, 0, 5));
     }
 
-    public function test_rejects_overlapping_surgeries_on_approve_even_in_different_rooms(): void
+    public function test_allows_overlapping_surgeries_on_approve_in_different_rooms(): void
     {
         $doctor = User::factory()->create();
         $doctor->assignRole('medico');
@@ -381,9 +379,8 @@ class SurgeryRequestTest extends TestCase
 
         $response = $this->actingAs($nurse)->post("/surgery-requests/{$pending->id}/approve");
 
-        $response->assertSessionHasErrors('approve');
-        $this->assertStringContainsString('sala 1', session('errors')->first('approve'));
-        $this->assertEquals('requested', $pending->fresh()->status);
+        $response->assertRedirect();
+        $this->assertEquals('approved', $pending->fresh()->status);
     }
 
     public function test_cannot_edit_room_or_duration_after_approval(): void

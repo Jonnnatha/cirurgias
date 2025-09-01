@@ -127,8 +127,9 @@ class SurgeryRequestController extends Controller
                 DB::select('SELECT id FROM surgery_requests WHERE date = ? FOR UPDATE', [$date]);
             }
 
-            // 2) Checagem de sobreposição (por sala)
+            // 2) Checagem de sobreposição na mesma sala
             $conflict = SurgeryRequest::where('date', $date)
+                ->where('room_number', $data['room_number'])
                 ->whereIn('status', ['requested', 'approved'])
                 ->where('start_time', '<', $end)
                 ->where('end_time', '>', $start)
@@ -136,7 +137,7 @@ class SurgeryRequestController extends Controller
 
             if ($conflict) {
                 $msg = sprintf(
-                    'Conflito de horário com cirurgia na sala %s de %s às %s.',
+                    'Conflito de horário: sala %s ocupada de %s às %s.',
                     $conflict->room_number,
                     substr($conflict->start_time, 0, 5),
                     substr($conflict->end_time, 0, 5)
@@ -188,7 +189,9 @@ class SurgeryRequestController extends Controller
                 DB::select('SELECT id FROM surgery_requests WHERE date = ? FOR UPDATE', [$date]);
             }
 
+            // Checagem de sobreposição na mesma sala
             $conflict = SurgeryRequest::where('date', $date)
+                ->where('room_number', $data['room_number'])
                 ->where('id', '!=', $surgeryRequest->id)
                 ->whereIn('status', ['requested', 'approved'])
                 ->where('start_time', '<', $end)
@@ -197,7 +200,7 @@ class SurgeryRequestController extends Controller
 
             if ($conflict) {
                 $msg = sprintf(
-                    'Conflito de horário com cirurgia na sala %s de %s às %s.',
+                    'Conflito de horário: sala %s ocupada de %s às %s.',
                     $conflict->room_number,
                     substr($conflict->start_time, 0, 5),
                     substr($conflict->end_time, 0, 5)
@@ -265,7 +268,9 @@ class SurgeryRequestController extends Controller
                 DB::select('SELECT id FROM surgery_requests WHERE date = ? FOR UPDATE', [$surgeryRequest->date]);
             }
 
+            // Checagem de sobreposição na mesma sala
             $conflict = SurgeryRequest::where('date', $surgeryRequest->date)
+                ->where('room_number', $surgeryRequest->room_number)
                 ->where('id', '!=', $surgeryRequest->id)
                 ->whereIn('status', ['approved'])
                 ->where('start_time', '<', $surgeryRequest->end_time)
@@ -274,7 +279,7 @@ class SurgeryRequestController extends Controller
 
             if ($conflict) {
                 $msg = sprintf(
-                    'Conflito: sala %s ocupada de %s às %s.',
+                    'Conflito de horário: sala %s ocupada de %s às %s.',
                     $conflict->room_number,
                     substr($conflict->start_time, 0, 5),
                     substr($conflict->end_time, 0, 5)
