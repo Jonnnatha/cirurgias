@@ -12,11 +12,6 @@ class DayReservationPolicy
         return $user->hasRole('medico');
     }
 
-    public function confirm(User $user, DayReservation $reservation): bool
-    {
-        return $user->hasAnyRole(['enfermeiro', 'admin']);
-    }
-
     public function delete(User $user, DayReservation $reservation): bool
     {
         return $user->hasRole('admin') || (

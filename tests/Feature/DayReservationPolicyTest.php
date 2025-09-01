@@ -64,65 +64,6 @@ class DayReservationPolicyTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_nurse_can_confirm_day_reservation(): void
-    {
-        $doctor = User::factory()->create();
-        $doctor->assignRole('medico');
-        $nurse = User::factory()->create();
-        $nurse->assignRole('enfermeiro');
-
-        $reservation = DayReservation::create([
-            'doctor_id' => $doctor->id,
-            'date' => now()->addDay(),
-            'status' => 'pending',
-        ]);
-
-        $this->actingAs($nurse)->postJson("/calendar/{$reservation->id}/confirm")
-            ->assertOk();
-
-        $this->assertDatabaseHas('day_reservations', [
-            'id' => $reservation->id,
-            'status' => 'confirmed',
-        ]);
-    }
-
-    public function test_admin_can_confirm_day_reservation(): void
-    {
-        $doctor = User::factory()->create();
-        $doctor->assignRole('medico');
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-
-        $reservation = DayReservation::create([
-            'doctor_id' => $doctor->id,
-            'date' => now()->addDay(),
-            'status' => 'pending',
-        ]);
-
-        $this->actingAs($admin)->postJson("/calendar/{$reservation->id}/confirm")
-            ->assertOk();
-
-        $this->assertDatabaseHas('day_reservations', [
-            'id' => $reservation->id,
-            'status' => 'confirmed',
-        ]);
-    }
-
-    public function test_doctor_cannot_confirm_day_reservation(): void
-    {
-        $doctor = User::factory()->create();
-        $doctor->assignRole('medico');
-
-        $reservation = DayReservation::create([
-            'doctor_id' => $doctor->id,
-            'date' => now()->addDay(),
-            'status' => 'pending',
-        ]);
-
-        $this->actingAs($doctor)->postJson("/calendar/{$reservation->id}/confirm")
-            ->assertForbidden();
-    }
-
     public function test_doctor_can_delete_own_day_reservation(): void
     {
         $doctor = User::factory()->create();
@@ -131,7 +72,6 @@ class DayReservationPolicyTest extends TestCase
         $reservation = DayReservation::create([
             'doctor_id' => $doctor->id,
             'date' => now()->addDay(),
-            'status' => 'pending',
         ]);
 
         $this->actingAs($doctor)->deleteJson("/calendar/{$reservation->id}")
@@ -152,7 +92,6 @@ class DayReservationPolicyTest extends TestCase
         $reservation = DayReservation::create([
             'doctor_id' => $doctor->id,
             'date' => now()->addDay(),
-            'status' => 'pending',
         ]);
 
         $this->actingAs($nurse)->deleteJson("/calendar/{$reservation->id}")
@@ -169,7 +108,6 @@ class DayReservationPolicyTest extends TestCase
         $reservation = DayReservation::create([
             'doctor_id' => $doctor->id,
             'date' => now()->addDay(),
-            'status' => 'pending',
         ]);
 
         $this->actingAs($admin)->deleteJson("/calendar/{$reservation->id}")

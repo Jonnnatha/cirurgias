@@ -13,7 +13,6 @@ class DayReservation extends Model
     protected $fillable = [
         'doctor_id',
         'date',
-        'status',
     ];
 
     protected $casts = [

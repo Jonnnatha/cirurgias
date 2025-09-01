@@ -51,19 +51,9 @@ class CalendarController extends Controller
         $reservation = DayReservation::create([
             'doctor_id' => $request->user()->id,
             'date' => $data['date'],
-            'status' => 'pending',
         ]);
 
         return response()->json($reservation, 201);
-    }
-
-    public function confirm(DayReservation $dayReservation)
-    {
-        $this->authorize('confirm', $dayReservation);
-
-        $dayReservation->update(['status' => 'confirmed']);
-
-        return response()->json($dayReservation);
     }
 
     public function destroy(DayReservation $dayReservation)
