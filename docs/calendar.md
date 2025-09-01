@@ -13,7 +13,18 @@ Parameters:
 The response is JSON ordered by date and start time and includes the `id`, `date`, `start_time`, `end_time`, `patient_name`, and
  `procedure` fields.
 
-When submitting surgery requests, the same room and date rules are validated and any overlapping schedule—regardless of room—triggers a validation error describing the conflicting room and times.
+When submitting surgery requests, overlaps are only validated against other surgeries in the **same room** on the same date.
+Concurrent surgeries in different rooms are accepted.
+
+For example, both of these requests succeed even though their times overlap:
+
+```bash
+POST /surgery-requests
+{ "date": "2025-01-10", "start_time": "10:00", "end_time": "11:00", "room_number": 1, ... }
+
+POST /surgery-requests
+{ "date": "2025-01-10", "start_time": "10:00", "end_time": "11:00", "room_number": 2, ... }
+```
 
 ## Create reservation
 
