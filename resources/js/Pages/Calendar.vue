@@ -8,6 +8,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 
 const reservations = ref([]);
+const examReservations = ref([]);
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
@@ -23,8 +24,12 @@ const canCancel = (reservation) => {
 
 async function fetchReservations() {
     try {
-        const { data } = await axios.get('/calendar');
-        reservations.value = data;
+        const [dayRes, examRes] = await Promise.all([
+            axios.get('/calendar'),
+            axios.get('/exams'),
+        ]);
+        reservations.value = dayRes.data;
+        examReservations.value = examRes.data;
     } catch (error) {
         console.error('Failed to fetch reservations', error);
     }
@@ -32,22 +37,36 @@ async function fetchReservations() {
 
 onMounted(fetchReservations);
 
-const events = computed(() =>
-    reservations.value.map((r) => ({
-        id: r.id,
+const events = computed(() => [
+    ...reservations.value.map((r) => ({
+        id: `day-${r.id}`,
         title: 'Reservado',
         start: r.date,
         allDay: true,
         backgroundColor: '#ef4444',
         borderColor: '#ef4444',
-        extendedProps: { reservation: r },
-    }))
-);
+        extendedProps: { type: 'day', item: r },
+    })),
+    ...examReservations.value.map((e) => ({
+        id: `exam-${e.id}`,
+        title: e.exam_type,
+        start: e.date,
+        allDay: true,
+        backgroundColor: '#3b82f6',
+        borderColor: '#3b82f6',
+        extendedProps: { type: 'exam', item: e },
+    })),
+]);
 
 async function handleDateSelect(selectionInfo) {
     if (!hasRole('medico')) return;
     try {
-        await axios.post('/calendar', { date: selectionInfo.startStr });
+        const examType = prompt('Tipo de exame? (deixe vazio para reservar dia)');
+        if (examType) {
+            await axios.post('/exams', { date: selectionInfo.startStr, exam_type: examType });
+        } else {
+            await axios.post('/calendar', { date: selectionInfo.startStr });
+        }
         await fetchReservations();
     } catch (error) {
         console.error('Failed to create reservation', error);
@@ -55,11 +74,12 @@ async function handleDateSelect(selectionInfo) {
 }
 
 async function handleEventClick(clickInfo) {
-    const reservation = clickInfo.event.extendedProps.reservation;
-    if (canCancel(reservation)) {
+    const { type, item } = clickInfo.event.extendedProps;
+    if (canCancel(item)) {
         if (confirm('Cancelar reserva?')) {
             try {
-                await axios.delete(`/calendar/${reservation.id}`);
+                const url = type === 'exam' ? `/exams/${item.id}` : `/calendar/${item.id}`;
+                await axios.delete(url);
                 await fetchReservations();
             } catch (error) {
                 console.error('Failed to delete reservation', error);

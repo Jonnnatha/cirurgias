@@ -7,6 +7,7 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\ExamReservationController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -84,6 +85,12 @@ Route::middleware('auth')->group(function () {
         // cancelar/remover pedido
         Route::delete('/surgery-requests/{surgeryRequest}', [SurgeryRequestController::class, 'destroy'])
             ->name('surgery-requests.destroy');
+    });
+
+    Route::middleware(['role:medico|admin'])->group(function () {
+        Route::get('/exams', [ExamReservationController::class, 'index']);
+        Route::post('/exams', [ExamReservationController::class, 'store']);
+        Route::delete('/exams/{examReservation}', [ExamReservationController::class, 'destroy']);
     });
 
     // edição/atualização do pedido
