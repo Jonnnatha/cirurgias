@@ -20,6 +20,29 @@ class ExamReservationTest extends TestCase
         app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 
+    public function test_admin_can_create_exam_reservation_for_doctor(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $doctor = User::factory()->create();
+        $doctor->assignRole('medico');
+
+        $payload = [
+            'doctor_id' => $doctor->id,
+            'exam_type' => 'Raio-X',
+            'date' => now()->addDay()->toDateString(),
+        ];
+
+        $this->actingAs($admin)->postJson('/exams', $payload)
+            ->assertStatus(201);
+
+        $this->assertDatabaseHas('exam_reservations', [
+            'doctor_id' => $doctor->id,
+            'exam_type' => 'Raio-X',
+        ]);
+    }
+
     public function test_doctor_can_create_exam_reservation(): void
     {
         $doctor = User::factory()->create();
