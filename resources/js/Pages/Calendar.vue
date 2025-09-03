@@ -63,7 +63,7 @@ const calendarOptions = computed(() => ({
                         <div>
                             <label for="room" class="block text-sm font-medium text-gray-700">Sala</label>
                             <select id="room" v-model.number="roomNumber" class="mt-1 block border-gray-300 rounded-md shadow-sm">
-                                <option v-for="n in 9" :key="n" :value="n">Sala {{ n }}</option>
+                                <option v-for="n in 8" :key="n" :value="n">Sala {{ n }}</option>
                             </select>
                         </div>
                         <div>

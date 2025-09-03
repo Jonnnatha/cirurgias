@@ -77,6 +77,33 @@ class CalendarTest extends TestCase
         $response->assertStatus(403);
     }
 
+    public function test_room_number_eight_is_valid(): void
+    {
+        $doctor = User::factory()->create();
+        $doctor->assignRole('medico');
+
+        SurgeryRequest::create([
+            'doctor_id'        => $doctor->id,
+            'date'             => '2025-01-10',
+            'start_time'       => '14:00',
+            'end_time'         => '15:00',
+            'room_number'      => 8,
+            'duration_minutes' => 60,
+            'patient_name'     => 'C',
+            'procedure'        => 'Proc',
+            'status'           => 'approved',
+        ]);
+
+        $response = $this->actingAs($doctor)->getJson('/calendar?room_number=8&start_date=2025-01-01&end_date=2025-01-31');
+
+        $response->assertStatus(200)
+            ->assertJsonCount(1)
+            ->assertJsonFragment([
+                'patient_name' => 'C',
+                'room_number' => 8,
+            ]);
+    }
+
     public function test_room_number_nine_is_invalid(): void
     {
         $doctor = User::factory()->create();

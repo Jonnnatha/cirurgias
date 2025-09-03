@@ -7,7 +7,7 @@ GET /calendar?room_number=1&start_date=2025-01-01&end_date=2025-01-31
 ```
 
 Parameters:
-- `room_number`: required integer between 1 and 8.
+- `room_number`: required integer between 1 and 8 (the system currently has eight rooms).
 - `start_date` and `end_date`: required dates (end must be on or after start).
 
 The response is JSON ordered by date and start time and includes the `id`, `date`, `start_time`, `end_time`, `patient_name`, and
