@@ -13,7 +13,7 @@ class CalendarController extends Controller
     {
         if ($request->wantsJson() || $request->query('room_number')) {
             $data = $request->validate([
-                'room_number' => ['required','integer','between:1,9'],
+                'room_number' => ['required','integer','between:1,8'],
                 'start_date'  => ['required','date'],
                 'end_date'    => ['required','date','after_or_equal:start_date'],
             ]);

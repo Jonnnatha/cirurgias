@@ -86,7 +86,7 @@ const submit = () => {
                                 <InputLabel for="room_number" value="Sala" />
                                 <select id="room_number" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" v-model="form.room_number" required :disabled="isApproved">
                                     <option value="" disabled>Selecione</option>
-                                    <option v-for="n in 9" :key="n" :value="n">Sala {{ n }}</option>
+                                    <option v-for="n in 8" :key="n" :value="n">Sala {{ n }}</option>
                                 </select>
                                 <InputError class="mt-2" :message="form.errors.room_number" />
                             </div>
