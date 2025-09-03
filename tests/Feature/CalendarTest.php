@@ -76,5 +76,16 @@ class CalendarTest extends TestCase
         $response = $this->actingAs($user)->get('/calendar');
         $response->assertStatus(403);
     }
+
+    public function test_room_number_nine_is_invalid(): void
+    {
+        $doctor = User::factory()->create();
+        $doctor->assignRole('medico');
+
+        $response = $this->actingAs($doctor)->getJson('/calendar?room_number=9&start_date=2025-01-01&end_date=2025-01-31');
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['room_number']);
+    }
 }
 

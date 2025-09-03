@@ -51,6 +51,26 @@ class SurgeryRequestTest extends TestCase
         ]);
     }
 
+    public function test_room_number_nine_fails_validation(): void
+    {
+        $doctor = User::factory()->create();
+        $doctor->assignRole('medico');
+
+        $payload = [
+            'date' => now()->addDay()->toDateString(),
+            'start_time' => '10:00',
+            'end_time' => '11:00',
+            'duration_minutes' => 60,
+            'room_number' => 9,
+            'patient_name' => 'John Doe',
+            'procedure' => 'Appendectomy',
+        ];
+
+        $response = $this->actingAs($doctor)->post('/surgery-requests', $payload);
+
+        $response->assertSessionHasErrors('room_number');
+    }
+
     public function test_end_time_is_calculated_when_missing(): void
     {
         $doctor = User::factory()->create();
