@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DayReservation;
 use App\Models\SurgeryRequest;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class CalendarController extends Controller
@@ -45,7 +46,12 @@ class CalendarController extends Controller
         $this->authorize('create', DayReservation::class);
 
         $data = $request->validate([
-            'date' => ['required', 'date', 'unique:day_reservations,date'],
+            'date' => [
+                'required',
+                'date',
+                Rule::unique('day_reservations', 'date')
+                    ->where('doctor_id', $request->user()->id),
+            ],
         ]);
 
         $reservation = DayReservation::create([
