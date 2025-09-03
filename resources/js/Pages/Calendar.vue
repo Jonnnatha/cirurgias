@@ -1,100 +1,51 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, usePage } from '@inertiajs/vue3';
+import { Head } from '@inertiajs/vue3';
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
-import interactionPlugin from '@fullcalendar/interaction';
 
-const reservations = ref([]);
-const examReservations = ref([]);
+const roomNumber = ref(1);
+const today = new Date();
+const startDate = ref(new Date(today.getFullYear(), today.getMonth(), 1).toISOString().slice(0, 10));
+const endDate = ref(new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().slice(0, 10));
 
-const page = usePage();
-const user = computed(() => page.props.auth.user);
-
-const hasRole = (role) => {
-    const u = user.value;
-    return u.roles ? u.roles.some((r) => r.name === role) : u.hierarquia === role;
-};
-
-const canCancel = (reservation) => {
-    return hasRole('admin') || reservation.doctor_id === user.value.id;
-};
+const surgeries = ref([]);
 
 async function fetchReservations() {
     try {
-        const [dayRes, examRes] = await Promise.all([
-            axios.get('/calendar'),
-            axios.get('/exams'),
-        ]);
-        reservations.value = dayRes.data;
-        examReservations.value = examRes.data;
+        const response = await axios.get('/calendar', {
+            params: {
+                room_number: roomNumber.value,
+                start_date: startDate.value,
+                end_date: endDate.value,
+            },
+        });
+        surgeries.value = response.data;
     } catch (error) {
-        console.error('Failed to fetch reservations', error);
+        console.error('Failed to fetch surgeries', error);
     }
 }
 
 onMounted(fetchReservations);
 
-const events = computed(() => [
-    ...reservations.value.map((r) => ({
-        id: `day-${r.id}`,
-        title: 'Reservado',
-        start: r.date,
-        allDay: true,
-        backgroundColor: '#ef4444',
-        borderColor: '#ef4444',
-        extendedProps: { type: 'day', item: r },
-    })),
-    ...examReservations.value.map((e) => ({
-        id: `exam-${e.id}`,
-        title: e.exam_type,
-        start: e.date,
-        allDay: true,
+const events = computed(() =>
+    surgeries.value.map((s) => ({
+        id: s.id,
+        title: s.patient_name,
+        start: `${s.date}T${s.start_time}`,
+        end: `${s.date}T${s.end_time}`,
         backgroundColor: '#3b82f6',
         borderColor: '#3b82f6',
-        extendedProps: { type: 'exam', item: e },
-    })),
-]);
-
-async function handleDateSelect(selectionInfo) {
-    if (!hasRole('medico')) return;
-    try {
-        const examType = prompt('Tipo de exame? (deixe vazio para reservar dia)');
-        if (examType) {
-            await axios.post('/exams', { date: selectionInfo.startStr, exam_type: examType });
-        } else {
-            await axios.post('/calendar', { date: selectionInfo.startStr });
-        }
-        await fetchReservations();
-    } catch (error) {
-        console.error('Failed to create reservation', error);
-    }
-}
-
-async function handleEventClick(clickInfo) {
-    const { type, item } = clickInfo.event.extendedProps;
-    if (canCancel(item)) {
-        if (confirm('Cancelar reserva?')) {
-            try {
-                const url = type === 'exam' ? `/exams/${item.id}` : `/calendar/${item.id}`;
-                await axios.delete(url);
-                await fetchReservations();
-            } catch (error) {
-                console.error('Failed to delete reservation', error);
-            }
-        }
-    }
-}
+        extendedProps: { surgery: s },
+    }))
+);
 
 const calendarOptions = computed(() => ({
-    plugins: [dayGridPlugin, interactionPlugin],
+    plugins: [dayGridPlugin],
     initialView: 'dayGridMonth',
-    selectable: hasRole('medico'),
-    select: handleDateSelect,
     events: events.value,
-    eventClick: handleEventClick,
 }));
 </script>
 
@@ -108,10 +59,28 @@ const calendarOptions = computed(() => ({
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 text-gray-900">
+                    <form @submit.prevent="fetchReservations" class="flex flex-wrap items-end gap-4 mb-4">
+                        <div>
+                            <label for="room" class="block text-sm font-medium text-gray-700">Sala</label>
+                            <select id="room" v-model.number="roomNumber" class="mt-1 block border-gray-300 rounded-md shadow-sm">
+                                <option v-for="n in 9" :key="n" :value="n">Sala {{ n }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="start" class="block text-sm font-medium text-gray-700">Início</label>
+                            <input id="start" type="date" v-model="startDate" class="mt-1 block border-gray-300 rounded-md shadow-sm" />
+                        </div>
+                        <div>
+                            <label for="end" class="block text-sm font-medium text-gray-700">Fim</label>
+                            <input id="end" type="date" v-model="endDate" class="mt-1 block border-gray-300 rounded-md shadow-sm" />
+                        </div>
+                        <div>
+                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-500 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">Carregar</button>
+                        </div>
+                    </form>
                     <FullCalendar :options="calendarOptions" />
                 </div>
             </div>
         </div>
     </AuthenticatedLayout>
 </template>
-
