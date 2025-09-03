@@ -9,7 +9,7 @@ class ExamReservationPolicy
 {
     public function create(User $user): bool
     {
-        return $user->hasRole('medico');
+        return $user->hasAnyRole(['medico', 'admin']);
     }
 
     public function delete(User $user, ExamReservation $reservation): bool
