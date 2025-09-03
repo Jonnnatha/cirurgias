@@ -25,6 +25,13 @@ function cancel(id) {
         router.delete(route('surgery-requests.destroy', id));
     }
 }
+
+const statusClass = (status) => ({
+    requested: 'text-blue-600',
+    approved: 'text-green-600',
+    rejected: 'text-red-600',
+    cancelled: 'text-gray-600',
+}[status] || '');
 </script>
 
 <template>
@@ -65,7 +72,7 @@ function cancel(id) {
                             <tr v-for="req in requests.data" :key="req.id" class="border-t">
                                 <td class="px-3 py-2">{{ req.patient_name }}</td>
                                 <td class="px-3 py-2">{{ req.date }}</td>
-                                <td class="px-3 py-2">{{ req.status }}</td>
+                                <td class="px-3 py-2" :class="statusClass(req.status)">{{ req.status }}</td>
                                 <td class="px-3 py-2 text-right">
                                     <button v-if="req.can_cancel" @click="cancel(req.id)" class="text-red-600 hover:underline">Cancelar</button>
                                 </td>
