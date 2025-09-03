@@ -12,8 +12,10 @@ const startDate = ref(new Date(today.getFullYear(), today.getMonth(), 1).toISOSt
 const endDate = ref(new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().slice(0, 10));
 
 const surgeries = ref([]);
+const loadError = ref(null);
 
 async function fetchReservations() {
+    loadError.value = null;
     try {
         const response = await axios.get('/calendar', {
             params: {
@@ -25,6 +27,7 @@ async function fetchReservations() {
         surgeries.value = response.data;
     } catch (error) {
         console.error('Failed to fetch surgeries', error);
+        loadError.value = 'Não foi possível carregar as cirurgias.';
     }
 }
 
@@ -78,6 +81,7 @@ const calendarOptions = computed(() => ({
                             <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-500 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">Carregar</button>
                         </div>
                     </form>
+                    <p v-if="loadError" class="mt-2 text-sm text-red-600">{{ loadError }}</p>
                     <FullCalendar :options="calendarOptions" />
                 </div>
             </div>
