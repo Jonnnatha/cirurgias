@@ -35,12 +35,27 @@ class DayReservationPolicyTest extends TestCase
         ]);
     }
 
-    public function test_second_reservation_on_same_day_is_blocked(): void
+    public function test_same_doctor_cannot_reserve_same_day_twice(): void
     {
-        $doctor1 = User::factory()->create();
-        $doctor1->assignRole('medico');
+        $doctor = User::factory()->create();
+        $doctor->assignRole('medico');
 
         $date = now()->addDay()->toDateString();
+
+        $this->actingAs($doctor)->postJson('/calendar', ['date' => $date])
+            ->assertStatus(201);
+
+        $this->actingAs($doctor)->postJson('/calendar', ['date' => $date])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('date');
+    }
+
+    public function test_different_doctors_can_reserve_same_day(): void
+    {
+        $date = now()->addDay()->toDateString();
+
+        $doctor1 = User::factory()->create();
+        $doctor1->assignRole('medico');
 
         $this->actingAs($doctor1)->postJson('/calendar', ['date' => $date])
             ->assertStatus(201);
@@ -48,9 +63,13 @@ class DayReservationPolicyTest extends TestCase
         $doctor2 = User::factory()->create();
         $doctor2->assignRole('medico');
 
-        $response = $this->actingAs($doctor2)->postJson('/calendar', ['date' => $date]);
+        $this->actingAs($doctor2)->postJson('/calendar', ['date' => $date])
+            ->assertStatus(201);
 
-        $response->assertStatus(422)->assertJsonValidationErrors('date');
+        $this->assertDatabaseHas('day_reservations', [
+            'doctor_id' => $doctor2->id,
+            'date' => $date,
+        ]);
     }
 
     public function test_nurse_cannot_create_day_reservation(): void
