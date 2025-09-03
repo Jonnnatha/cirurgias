@@ -17,13 +17,13 @@ const loadError = ref(null);
 async function fetchReservations() {
     loadError.value = null;
     try {
-        const response = await axios.get('/calendar', {
-            params: {
-                room_number: roomNumber.value,
-                start_date: startDate.value,
-                end_date: endDate.value,
-            },
-        });
+        const params = {
+            room_number: roomNumber.value,
+            start_date: startDate.value,
+            end_date: endDate.value,
+        };
+
+        const response = await axios.get('/calendar', { params });
         surgeries.value = response.data;
     } catch (error) {
         console.error('Failed to fetch surgeries', error);
