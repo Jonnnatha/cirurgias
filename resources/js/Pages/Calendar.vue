@@ -58,6 +58,7 @@ const events = computed(() =>
 );
 
 function handleDateClick(info) {
+    info.jsEvent.preventDefault();
     form.value = {
         date: info.dateStr,
         start_time: '',
@@ -142,40 +143,42 @@ const calendarOptions = computed(() => ({
                     <p v-if="successMessage" class="mt-2 text-sm text-green-600">{{ successMessage }}</p>
                     <FullCalendar :options="calendarOptions" />
 
-                    <div v-if="showForm" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                        <form @submit.prevent="submitRequest" class="bg-white p-6 rounded shadow w-full max-w-md space-y-4">
-                            <h3 class="text-lg font-semibold">Nova Solicitação</h3>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Data</label>
-                                <input type="date" v-model="form.date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" readonly />
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Início</label>
-                                <input type="time" v-model="form.start_time" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
-                                <p v-if="formErrors.start_time" class="text-sm text-red-600">{{ formErrors.start_time[0] }}</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Duração (min)</label>
-                                <input type="number" v-model="form.duration_minutes" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
-                                <p v-if="formErrors.duration_minutes" class="text-sm text-red-600">{{ formErrors.duration_minutes[0] }}</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Paciente</label>
-                                <input type="text" v-model="form.patient_name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
-                                <p v-if="formErrors.patient_name" class="text-sm text-red-600">{{ formErrors.patient_name[0] }}</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">Procedimento</label>
-                                <input type="text" v-model="form.procedure" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
-                                <p v-if="formErrors.procedure" class="text-sm text-red-600">{{ formErrors.procedure[0] }}</p>
-                            </div>
-                            <p v-if="formErrors.general" class="text-sm text-red-600">{{ formErrors.general[0] }}</p>
-                            <div class="flex justify-end gap-2">
-                                <button type="button" @click="showForm = false" class="px-4 py-2 bg-gray-200 rounded">Cancelar</button>
-                                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Salvar</button>
-                            </div>
-                        </form>
-                    </div>
+                    <Teleport to="body">
+                        <div v-if="showForm" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+                            <form @submit.prevent="submitRequest" class="bg-white p-6 rounded shadow w-full max-w-md space-y-4">
+                                <h3 class="text-lg font-semibold">Nova Solicitação</h3>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Data</label>
+                                    <input type="date" v-model="form.date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" readonly />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Início</label>
+                                    <input type="time" v-model="form.start_time" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
+                                    <p v-if="formErrors.start_time" class="text-sm text-red-600">{{ formErrors.start_time[0] }}</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Duração (min)</label>
+                                    <input type="number" v-model="form.duration_minutes" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
+                                    <p v-if="formErrors.duration_minutes" class="text-sm text-red-600">{{ formErrors.duration_minutes[0] }}</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Paciente</label>
+                                    <input type="text" v-model="form.patient_name" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
+                                    <p v-if="formErrors.patient_name" class="text-sm text-red-600">{{ formErrors.patient_name[0] }}</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Procedimento</label>
+                                    <input type="text" v-model="form.procedure" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
+                                    <p v-if="formErrors.procedure" class="text-sm text-red-600">{{ formErrors.procedure[0] }}</p>
+                                </div>
+                                <p v-if="formErrors.general" class="text-sm text-red-600">{{ formErrors.general[0] }}</p>
+                                <div class="flex justify-end gap-2">
+                                    <button type="button" @click="showForm = false" class="px-4 py-2 bg-gray-200 rounded">Cancelar</button>
+                                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Salvar</button>
+                                </div>
+                            </form>
+                        </div>
+                    </Teleport>
                 </div>
             </div>
         </div>
