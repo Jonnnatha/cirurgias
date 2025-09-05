@@ -17,6 +17,11 @@ const surgeries = ref([]);
 const loadError = ref(null);
 const successMessage = ref('');
 
+const statusColors = {
+    requested: '#f97316',
+    approved: '#16a34a',
+};
+
 const showForm = ref(false);
 const form = ref({
     date: '',
@@ -52,8 +57,8 @@ const events = computed(() =>
         title: s.patient_name,
         start: `${s.date}T${s.start_time}`,
         end: `${s.date}T${s.end_time}`,
-        backgroundColor: '#3b82f6',
-        borderColor: '#3b82f6',
+        backgroundColor: statusColors[s.status],
+        borderColor: statusColors[s.status],
         extendedProps: { surgery: s },
     }))
 );
@@ -160,6 +165,17 @@ const calendarOptions = computed(() => ({
                     <p v-if="loadError" class="mt-2 text-sm text-red-600">{{ loadError }}</p>
                     <p v-if="successMessage" class="mt-2 text-sm text-green-600">{{ successMessage }}</p>
                     <FullCalendar :options="calendarOptions" />
+
+                    <div class="flex gap-4 mt-4">
+                        <div class="flex items-center">
+                            <span class="w-3 h-3 rounded mr-2" :style="{ backgroundColor: statusColors.requested }"></span>
+                            <span>Solicitado</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-3 h-3 rounded mr-2" :style="{ backgroundColor: statusColors.approved }"></span>
+                            <span>Aprovado</span>
+                        </div>
+                    </div>
 
                     <Teleport to="body">
                         <div v-if="showForm" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
