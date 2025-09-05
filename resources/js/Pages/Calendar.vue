@@ -6,6 +6,7 @@ import axios from 'axios';
 import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
+import ptBrLocale from '@fullcalendar/core/locales/pt-br';
 
 const roomNumber = ref(1);
 const today = new Date();
@@ -107,6 +108,8 @@ const calendarOptions = computed(() => ({
     events: events.value,
     selectable: true,
     dateClick: handleDateClick,
+    locale: ptBrLocale,
+    buttonText: { today: 'hoje' },
 }));
 </script>
 
@@ -129,11 +132,11 @@ const calendarOptions = computed(() => ({
                         </div>
                         <div>
                             <label for="start" class="block text-sm font-medium text-gray-700">Início</label>
-                            <input id="start" type="date" v-model="startDate" class="mt-1 block border-gray-300 rounded-md shadow-sm" />
+                            <input id="start" type="date" v-model="startDate" lang="pt-BR" class="mt-1 block border-gray-300 rounded-md shadow-sm" />
                         </div>
                         <div>
                             <label for="end" class="block text-sm font-medium text-gray-700">Fim</label>
-                            <input id="end" type="date" v-model="endDate" class="mt-1 block border-gray-300 rounded-md shadow-sm" />
+                            <input id="end" type="date" v-model="endDate" lang="pt-BR" class="mt-1 block border-gray-300 rounded-md shadow-sm" />
                         </div>
                         <div>
                             <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-500 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">Carregar</button>
@@ -149,7 +152,7 @@ const calendarOptions = computed(() => ({
                                 <h3 class="text-lg font-semibold">Nova Solicitação</h3>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">Data</label>
-                                    <input type="date" v-model="form.date" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" readonly />
+                                    <input type="date" v-model="form.date" lang="pt-BR" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" readonly />
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">Início</label>
