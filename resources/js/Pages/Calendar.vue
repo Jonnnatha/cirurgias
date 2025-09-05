@@ -1,6 +1,4 @@
 <script setup>
-import '@fullcalendar/core/index.css';
-import '@fullcalendar/daygrid/index.css';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { ref, computed, watch } from 'vue';
