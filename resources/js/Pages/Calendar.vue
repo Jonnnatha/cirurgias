@@ -18,6 +18,8 @@ const successMessage = ref('');
 const statusColors = {
     requested: '#f97316',
     approved: '#16a34a',
+    rejected: '#dc2626',
+    cancelled: '#6b7280',
 };
 
 const showForm = ref(false);
@@ -181,6 +183,14 @@ const calendarOptions = computed(() => ({
                         <div class="flex items-center">
                             <span class="w-3 h-3 rounded mr-2" :style="{ backgroundColor: statusColors.approved }"></span>
                             <span>Aprovado</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-3 h-3 rounded mr-2" :style="{ backgroundColor: statusColors.rejected }"></span>
+                            <span>Rejeitado</span>
+                        </div>
+                        <div class="flex items-center">
+                            <span class="w-3 h-3 rounded mr-2" :style="{ backgroundColor: statusColors.cancelled }"></span>
+                            <span>Cancelado</span>
                         </div>
                     </div>
 
