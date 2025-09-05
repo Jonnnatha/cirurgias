@@ -72,12 +72,24 @@ function handleDateClick(info) {
 
 async function submitRequest() {
     formErrors.value = {};
+    if (
+        !form.value.start_time ||
+        !form.value.duration_minutes ||
+        !form.value.patient_name ||
+        !form.value.procedure
+    ) {
+        formErrors.value.general = ['Preencha todos os campos obrigatórios.'];
+        return;
+    }
+
     try {
         const start = form.value.start_time;
         const duration = Number(form.value.duration_minutes);
         const [h, m] = start.split(':').map(Number);
         const endDate = new Date(0, 0, 0, h, m + duration);
-        const end_time = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
+        const end_time = `${String(endDate.getHours()).padStart(2, '0')}:${String(
+            endDate.getMinutes()
+        ).padStart(2, '0')}`;
 
         await axios.post('/surgery-requests', {
             date: form.value.date,
@@ -97,6 +109,9 @@ async function submitRequest() {
             formErrors.value = error.response.data.errors;
         } else {
             formErrors.value = { general: ['Erro ao criar solicitação.'] };
+        }
+        if (error.response?.data?.message) {
+            alert(error.response.data.message);
         }
     }
 }
