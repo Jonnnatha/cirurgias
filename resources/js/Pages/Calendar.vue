@@ -133,9 +133,6 @@ async function submitRequest() {
         } else {
             formErrors.value = { general: ['Erro ao criar solicitação.'] };
         }
-        if (error.response?.data?.message) {
-            alert(error.response.data.message);
-        }
     }
 }
 
@@ -203,6 +200,7 @@ const calendarOptions = computed(() => ({
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">Data</label>
                                     <input type="date" v-model="form.date" lang="pt-BR" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" readonly />
+                                    <p v-if="formErrors.date" class="text-sm text-red-600">{{ formErrors.date[0] }}</p>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">Início</label>
