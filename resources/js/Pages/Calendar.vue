@@ -31,15 +31,15 @@ async function fetchReservations() {
     try {
         const params = {
             room_number: roomNumber.value,
-            start_date: startDate.value,
-            end_date: endDate.value,
+            start_date: new Date(startDate.value).toISOString().slice(0, 10),
+            end_date: new Date(endDate.value).toISOString().slice(0, 10),
         };
 
         const response = await axios.get('/calendar', { params });
         surgeries.value = response.data;
     } catch (error) {
         console.error('Failed to fetch surgeries', error);
-        loadError.value = 'Não foi possível carregar as cirurgias.';
+        loadError.value = error.response?.data?.message || 'Não foi possível carregar as cirurgias.';
     }
 }
 
