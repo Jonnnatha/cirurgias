@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch } from 'vue';
 import axios from 'axios';
 import FullCalendar from '@fullcalendar/vue3';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -9,9 +9,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import ptBrLocale from '@fullcalendar/core/locales/pt-br';
 
 const roomNumber = ref(1);
-const today = new Date();
-const startDate = ref(new Date(today.getFullYear(), today.getMonth(), 1).toISOString().slice(0, 10));
-const endDate = ref(new Date(today.getFullYear(), today.getMonth() + 1, 0).toISOString().slice(0, 10));
+const currentRange = ref(null);
 
 const surgeries = ref([]);
 const loadError = ref(null);
@@ -28,12 +26,13 @@ const form = ref({
 const formErrors = ref({});
 
 async function fetchReservations() {
+    if (!currentRange.value) return;
     loadError.value = null;
     try {
         const params = {
             room_number: roomNumber.value,
-            start_date: new Date(startDate.value).toISOString().slice(0, 10),
-            end_date: new Date(endDate.value).toISOString().slice(0, 10),
+            start_date: currentRange.value.start.toISOString().slice(0, 10),
+            end_date: currentRange.value.end.toISOString().slice(0, 10),
         };
 
         const response = await axios.get('/calendar', { params });
@@ -44,7 +43,7 @@ async function fetchReservations() {
     }
 }
 
-onMounted(fetchReservations);
+watch(roomNumber, fetchReservations);
 
 const events = computed(() =>
     surgeries.value.map((s) => ({
@@ -69,6 +68,11 @@ function handleDateClick(info) {
     };
     formErrors.value = {};
     showForm.value = true;
+}
+
+function handleDatesSet(info) {
+    currentRange.value = info;
+    fetchReservations();
 }
 
 async function submitRequest() {
@@ -125,6 +129,7 @@ const calendarOptions = computed(() => ({
     dateClick: handleDateClick,
     locale: ptBrLocale,
     buttonText: { today: 'hoje' },
+    datesSet: handleDatesSet,
 }));
 </script>
 
@@ -138,25 +143,14 @@ const calendarOptions = computed(() => ({
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 text-gray-900">
-                    <form @submit.prevent="fetchReservations" class="flex flex-wrap items-end gap-4 mb-4">
+                    <div class="flex flex-wrap items-end gap-4 mb-4">
                         <div>
                             <label for="room" class="block text-sm font-medium text-gray-700">Sala</label>
                             <select id="room" v-model.number="roomNumber" class="mt-1 block border-gray-300 rounded-md shadow-sm">
                                 <option v-for="n in 8" :key="n" :value="n">Sala {{ n }}</option>
                             </select>
                         </div>
-                        <div>
-                            <label for="start" class="block text-sm font-medium text-gray-700">Início</label>
-                            <input id="start" type="date" v-model="startDate" lang="pt-BR" class="mt-1 block border-gray-300 rounded-md shadow-sm" />
-                        </div>
-                        <div>
-                            <label for="end" class="block text-sm font-medium text-gray-700">Fim</label>
-                            <input id="end" type="date" v-model="endDate" lang="pt-BR" class="mt-1 block border-gray-300 rounded-md shadow-sm" />
-                        </div>
-                        <div>
-                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-500 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">Carregar</button>
-                        </div>
-                    </form>
+                    </div>
                     <p v-if="loadError" class="mt-2 text-sm text-red-600">{{ loadError }}</p>
                     <p v-if="successMessage" class="mt-2 text-sm text-green-600">{{ successMessage }}</p>
                     <FullCalendar :options="calendarOptions" />
