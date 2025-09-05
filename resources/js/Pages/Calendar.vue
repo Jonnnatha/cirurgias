@@ -62,6 +62,19 @@ const events = computed(() =>
     }))
 );
 
+const selectedDateReservations = computed(() =>
+    surgeries.value.filter((s) => s.date === form.value.date)
+);
+
+const statusClass = (status) => (
+    {
+        requested: 'text-blue-600',
+        approved: 'text-green-600',
+        rejected: 'text-red-600',
+        cancelled: 'text-gray-600',
+    }[status] || ''
+);
+
 function handleDateClick(info) {
     info.jsEvent.preventDefault();
     form.value = {
@@ -175,6 +188,18 @@ const calendarOptions = computed(() => ({
                         <div v-if="showForm" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
                             <form @submit.prevent="submitRequest" class="bg-white p-6 rounded shadow w-full max-w-md space-y-4">
                                 <h3 class="text-lg font-semibold">Nova Solicitação</h3>
+                                <div v-if="selectedDateReservations.length" class="space-y-1">
+                                    <h4 class="text-sm font-medium">Reservas do dia</h4>
+                                    <ul class="text-sm">
+                                        <li
+                                            v-for="res in selectedDateReservations"
+                                            :key="res.id"
+                                        >
+                                            <span>{{ res.start_time }} - {{ res.end_time }}: </span>
+                                            <span :class="statusClass(res.status)">{{ res.status }}</span>
+                                        </li>
+                                    </ul>
+                                </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">Data</label>
                                     <input type="date" v-model="form.date" lang="pt-BR" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" readonly />
