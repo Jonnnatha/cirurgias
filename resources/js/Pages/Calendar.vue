@@ -35,7 +35,7 @@ async function fetchReservations() {
     loadError.value = null;
     try {
         const params = {
-            room_number: roomNumber.value,
+            room_number: Number(roomNumber.value),
             start_date: currentRange.value.start.toISOString().slice(0, 10),
             end_date: currentRange.value.end.toISOString().slice(0, 10),
         };
@@ -48,7 +48,10 @@ async function fetchReservations() {
     }
 }
 
-watch(roomNumber, fetchReservations);
+watch(roomNumber, (val) => {
+    roomNumber.value = Number(val);
+    fetchReservations();
+});
 
 const events = computed(() =>
     surgeries.value.map((s) => ({
@@ -114,15 +117,17 @@ async function submitRequest() {
             endDate.getMinutes()
         ).padStart(2, '0')}`;
 
-        await axios.post('/surgery-requests', {
+        const payload = {
             date: form.value.date,
             start_time: start,
             end_time,
-            room_number: roomNumber.value,
+            room_number: Number(roomNumber.value),
             duration_minutes: duration,
             patient_name: form.value.patient_name,
             procedure: form.value.procedure,
-        });
+        };
+        console.log('Submitting request payload:', payload);
+        await axios.post('/surgery-requests', payload);
 
         successMessage.value = 'Solicitação criada com sucesso!';
         showForm.value = false;
