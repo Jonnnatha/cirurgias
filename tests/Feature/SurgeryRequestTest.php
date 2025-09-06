@@ -9,8 +9,10 @@ use Database\Seeders\RolesSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\PermissionRegistrar;
 use App\Http\Controllers\SurgeryRequestController;
+use App\Services\SurgeryScheduler;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class SurgeryRequestTest extends TestCase
@@ -283,7 +285,9 @@ class SurgeryRequestTest extends TestCase
 
         $date = now()->addDay()->toDateString();
 
-        SurgeryRequest::create([
+        $scheduler = new SurgeryScheduler();
+
+        $scheduler->schedule([
             'doctor_id' => $doctor->id,
             'date' => $date,
             'start_time' => '10:00',
@@ -292,23 +296,19 @@ class SurgeryRequestTest extends TestCase
             'duration_minutes' => 60,
             'patient_name' => 'A',
             'procedure' => 'Proc',
-            'status' => 'requested',
-            'meta' => [],
         ]);
 
-        $payload = [
+        $scheduler->schedule([
+            'doctor_id' => $doctor->id,
             'date' => $date,
             'start_time' => '10:30',
             'end_time' => '11:30',
-            'duration_minutes' => 60,
             'room_number' => 2,
+            'duration_minutes' => 60,
             'patient_name' => 'B',
             'procedure' => 'Proc',
-        ];
+        ]);
 
-        $response = $this->actingAs($doctor)->post('/surgery-requests', $payload);
-
-        $response->assertRedirect();
         $this->assertDatabaseCount('surgery_requests', 2);
     }
 
@@ -321,7 +321,9 @@ class SurgeryRequestTest extends TestCase
 
         $date = now()->addDay()->toDateString();
 
-        SurgeryRequest::create([
+        $scheduler = new SurgeryScheduler();
+
+        $scheduler->schedule([
             'doctor_id' => $doctor1->id,
             'date' => $date,
             'start_time' => '10:00',
@@ -330,31 +332,37 @@ class SurgeryRequestTest extends TestCase
             'duration_minutes' => 60,
             'patient_name' => 'A',
             'procedure' => 'Proc',
-            'status' => 'requested',
-            'meta' => [],
         ]);
 
-        $payload = [
+        try {
+            $scheduler->schedule([
+                'doctor_id' => $doctor2->id,
+                'date' => $date,
+                'start_time' => '10:30',
+                'end_time' => '11:30',
+                'room_number' => 1,
+                'duration_minutes' => 60,
+                'patient_name' => 'B',
+                'procedure' => 'Proc',
+            ]);
+            $this->fail('Expected ValidationException not thrown');
+        } catch (ValidationException $e) {
+            $this->assertStringContainsString('sala 1', $e->errors()['start_time'][0]);
+        }
+
+        $this->assertDatabaseCount('surgery_requests', 1);
+
+        $scheduler->schedule([
+            'doctor_id' => $doctor2->id,
             'date' => $date,
             'start_time' => '10:30',
             'end_time' => '11:30',
+            'room_number' => 2,
             'duration_minutes' => 60,
-            'room_number' => 1,
             'patient_name' => 'B',
             'procedure' => 'Proc',
-        ];
+        ]);
 
-        $response = $this->actingAs($doctor2)->post('/surgery-requests', $payload);
-
-        $response->assertSessionHasErrors('start_time');
-        $this->assertStringContainsString('sala 1', session('errors')->first('start_time'));
-        $this->assertDatabaseCount('surgery_requests', 1);
-
-        // Try again in another room
-        $payload['room_number'] = 2;
-        $response = $this->actingAs($doctor2)->post('/surgery-requests', $payload);
-
-        $response->assertRedirect();
         $this->assertDatabaseCount('surgery_requests', 2);
     }
 
