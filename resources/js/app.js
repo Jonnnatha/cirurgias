@@ -1,7 +1,7 @@
 import './bootstrap';
 import '../css/app.css';
-import '@fullcalendar/core/index.css';
-import '@fullcalendar/daygrid/index.css';
+import '@fullcalendar/core/main.css';
+import '@fullcalendar/daygrid/main.css';
 
 import { createApp, h } from 'vue';
 import { createInertiaApp } from '@inertiajs/vue3';
