@@ -181,6 +181,14 @@ class SurgeryRequestController extends Controller
                 ]),
             ]);
 
+            $surgeryRequest->rescheduleRequests()
+                ->where('status', 'pending')
+                ->update([
+                    'status' => 'accepted',
+                    'resolved_at' => now(),
+                    'notes' => 'Cirurgia remarcada pelo usuário '.Auth::id(),
+                ]);
+
             return back()->with('ok', 'Solicitação atualizada!');
         });
     }
@@ -287,6 +295,14 @@ class SurgeryRequestController extends Controller
         $surgeryRequest->update([
             'status' => 'cancelled',
         ]);
+
+        $surgeryRequest->rescheduleRequests()
+            ->where('status', 'pending')
+            ->update([
+                'status' => 'cancelled',
+                'resolved_at' => now(),
+                'notes' => 'Cirurgia cancelada pelo usuário '.Auth::id(),
+            ]);
 
         return back()->with('ok', 'Solicitação cancelada.');
     }

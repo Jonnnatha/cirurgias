@@ -1,5 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import RoomDowntimeAlerts from '@/Components/RoomDowntimeAlerts.vue';
 import { Head, router } from '@inertiajs/vue3';
 
 const props = defineProps({
@@ -30,6 +31,7 @@ function cancel(id) {
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                    <RoomDowntimeAlerts class="mb-6" />
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead>
                             <tr>

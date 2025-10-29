@@ -8,6 +8,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\ExamReservationController;
+use App\Http\Controllers\RoomDowntimeController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -50,10 +51,24 @@ Route::middleware(['auth','verified','role:enfermeiro'])
     ->get('/enfermeiro/dashboard',[DashboardController::class,'enfermeiro'])
     ->name('enfermeiro.dashboard');
 
+Route::middleware(['auth','verified','role:admin'])->group(function () {
+    Route::post('/room-downtimes', [RoomDowntimeController::class, 'store'])
+        ->name('room-downtimes.store');
+    Route::post('/room-downtimes/{roomDowntime}/cancel', [RoomDowntimeController::class, 'cancel'])
+        ->name('room-downtimes.cancel');
+});
+
 Route::middleware(['auth','role:medico|enfermeiro|admin'])->group(function () {
     Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar');
     Route::post('/calendar', [CalendarController::class, 'store'])->name('day-reservations.store');
     Route::delete('/calendar/{dayReservation}', [CalendarController::class, 'destroy'])->name('day-reservations.destroy');
+
+    Route::get('/room-downtimes/banners', [RoomDowntimeController::class, 'indexBanners'])
+        ->name('room-downtimes.banners');
+    Route::get('/room-downtimes/room/{roomNumber}', [RoomDowntimeController::class, 'byRoom'])
+        ->name('room-downtimes.by-room');
+    Route::get('/room-downtimes/alerts', [RoomDowntimeController::class, 'alerts'])
+        ->name('room-downtimes.alerts');
 });
 
 Route::middleware('auth')->group(function () {
