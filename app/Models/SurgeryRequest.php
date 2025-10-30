@@ -38,4 +38,9 @@ class SurgeryRequest extends Model
     {
         return $this->hasMany(Document::class);
     }
+
+    public function rescheduleRequests()
+    {
+        return $this->hasMany(SurgeryRescheduleRequest::class);
+    }
 }
